@@ -42,7 +42,7 @@ async function load() {
     client.from('profiles').select('*').eq('id', id).single(),
     client.from('assignments').select('*, supervisor:profiles!assignments_supervisor_id_fkey(full_name), company:profiles!assignments_company_supervisor_id_fkey(full_name)').eq('student_id', id).maybeSingle(),
     client.from('entries').select('*').eq('student_id', id).order('entry_date', { ascending: true }),
-    client.from('summaries').select('*').eq('student_id', id).order('year').order('month'),
+    client.from('summaries').select('*').eq('student_id', id).order('period', { ascending: true, nullsFirst: false }),
   ])
   student.value = p.data
   assignment.value = a.data
@@ -144,7 +144,9 @@ onMounted(load)
         </h2>
         <p v-if="!summaries.length" class="text-sm text-gray-400">No summaries recorded.</p>
         <article v-for="s in summaries" :key="s.id" class="report-entry mb-4 break-inside-avoid border-b border-dashed border-gray-200 pb-3">
-          <p class="text-sm font-semibold text-caleb-navy">{{ MONTHS[s.month - 1] }} {{ s.year }}</p>
+          <p class="text-sm font-semibold text-caleb-navy">
+            {{ s.period ? `Month ${s.period} · Weeks ${(s.period - 1) * 4 + 1}–${s.period * 4}` : `${MONTHS[s.month - 1] ?? ''} ${s.year ?? ''}` }}
+          </p>
           <p class="mt-1 whitespace-pre-wrap text-sm text-gray-800">{{ s.content }}</p>
           <p class="mt-2 text-xs">
             <span class="text-gray-400">Approvals:</span>

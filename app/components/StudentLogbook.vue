@@ -29,13 +29,24 @@ async function load() {
     client.from('profiles').select('*').eq('id', props.studentId).single(),
     client.from('entries').select('*').eq('student_id', props.studentId).order('entry_date', { ascending: false }),
     props.showSummaries
-      ? client.from('summaries').select('*').eq('student_id', props.studentId).order('year', { ascending: false }).order('month', { ascending: false })
+      ? client.from('summaries').select('*').eq('student_id', props.studentId).order('period', { ascending: true, nullsFirst: false })
       : Promise.resolve({ data: [] as any[] }),
   ])
   student.value = p.data
   entries.value = e.data ?? []
   summaries.value = s.data ?? []
   loading.value = false
+}
+
+// "Month N · Weeks a–b" for period-based summaries; calendar fallback for any
+// legacy rows that predate the 4-week periods.
+function summaryLabel(s: any) {
+  if (s.period) {
+    const from = (s.period - 1) * WEEKS_PER_MONTH + 1
+    const to = s.period * WEEKS_PER_MONTH
+    return `Month ${s.period} · Weeks ${from}–${to}`
+  }
+  return `${MONTHS[s.month - 1] ?? ''} ${s.year ?? ''}`.trim()
 }
 
 onMounted(load)
@@ -81,7 +92,7 @@ onMounted(load)
         <div v-else class="space-y-6">
           <article v-for="s in summaries" :key="s.id" class="card overflow-hidden">
             <header class="flex items-center justify-between border-b-2 border-caleb-cyan-dark bg-caleb-surface px-4 py-3">
-              <h3 class="font-semibold">{{ MONTHS[s.month - 1] }} {{ s.year }}</h3>
+              <h3 class="font-semibold">{{ summaryLabel(s) }}</h3>
               <StatusPill :status="s.status" />
             </header>
             <div class="space-y-4 px-4 py-4">

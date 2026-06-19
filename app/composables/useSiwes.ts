@@ -1,5 +1,7 @@
 // SIWES week math, shared by the student logbook and the public sign page.
 export const SIWES_WEEKS = 24
+export const WEEKS_PER_MONTH = 4
+export const SIWES_MONTHS = SIWES_WEEKS / WEEKS_PER_MONTH // 6 monthly summaries
 export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
 export function isoDate(d: Date) {
@@ -52,4 +54,43 @@ export function buildWeeks(startStr: string | null | undefined, totalWeeks = SIW
 // A week is complete when all 5 weekdays have non-empty content.
 export function weekComplete(week: SiwesWeek, entriesByDate: Record<string, any>) {
   return week.days.every((d) => (entriesByDate[d.date]?.content ?? '').trim().length > 0)
+}
+
+// The 4-week monthly-summary period a given week belongs to (1-based).
+export function periodForWeek(weekNumber: number) {
+  return Math.ceil(weekNumber / WEEKS_PER_MONTH)
+}
+
+export interface SiwesMonth {
+  period: number // 1..6
+  week_from: number
+  week_to: number
+  weeks: SiwesWeek[] // the 4 weeks in this period
+  start: string // Monday of the first week
+  end: string // Friday of the last week
+}
+
+// Build the 6 monthly-summary periods (each = 4 SIWES weeks) from a start date.
+export function buildMonths(startStr: string | null | undefined, weeks?: SiwesWeek[]): SiwesMonth[] {
+  const ws = weeks ?? buildWeeks(startStr)
+  if (!ws.length) return []
+  const months: SiwesMonth[] = []
+  for (let p = 1; p <= SIWES_MONTHS; p++) {
+    const slice = ws.slice((p - 1) * WEEKS_PER_MONTH, p * WEEKS_PER_MONTH)
+    if (slice.length < WEEKS_PER_MONTH) break
+    months.push({
+      period: p,
+      week_from: slice[0].week_number,
+      week_to: slice[slice.length - 1].week_number,
+      weeks: slice,
+      start: slice[0].monday,
+      end: slice[slice.length - 1].friday,
+    })
+  }
+  return months
+}
+
+// A monthly period is complete when all its weeks are complete.
+export function monthComplete(month: SiwesMonth, entriesByDate: Record<string, any>) {
+  return month.weeks.every((w) => weekComplete(w, entriesByDate))
 }

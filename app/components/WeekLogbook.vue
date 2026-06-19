@@ -8,12 +8,16 @@ const uid = useUid()
 const startStr = ref<string | null>(null) // cohort-wide SIWES start date
 const entries = ref<any[]>([])
 const signoffs = ref<any[]>([])
+const summaries = ref<any[]>([])
 const loading = ref(true)
 const selectedIdx = ref(0)
 const savingDate = ref<string | null>(null)
+const savingSummary = ref<number | null>(null)
 
 const drafts = reactive<Record<string, string>>({})
 const files = reactive<Record<string, File | null>>({})
+const summaryDrafts = reactive<Record<number, string>>({}) // keyed by period 1..6
+const summaryStatus = reactive<Record<number, string>>({})
 
 const entriesByDate = computed<Record<string, any>>(() => {
   const m: Record<string, any> = {}
@@ -26,6 +30,23 @@ const signoffByWeek = computed<Record<number, any>>(() => {
   return m
 })
 const weeks = computed(() => buildWeeks(startStr.value))
+const months = computed(() => buildMonths(startStr.value, weeks.value))
+const summaryByPeriod = computed<Record<number, any>>(() => {
+  const m: Record<number, any> = {}
+  for (const s of summaries.value) if (s.period) m[s.period] = s
+  return m
+})
+
+// The monthly summary shown under the current week: only the last week of each
+// 4-week block (weeks 4, 8, 12, 16, 20, 24) carries one.
+const currentMonth = computed(() => {
+  const w = selectedWeek.value
+  if (!w || w.week_number % WEEKS_PER_MONTH !== 0) return null
+  return months.value[w.week_number / WEEKS_PER_MONTH - 1] ?? null
+})
+const currentMonthComplete = computed(() =>
+  currentMonth.value ? monthComplete(currentMonth.value, entriesByDate.value) : false
+)
 
 // First incomplete week is the active one; everything after it is locked.
 const activeIdx = computed(() => {
@@ -42,22 +63,59 @@ function seedSelected() {
   for (const d of selectedWeek.value.days) {
     drafts[d.date] = entriesByDate.value[d.date]?.content ?? ''
   }
+  const mo = currentMonth.value
+  if (mo) {
+    const existing = summaryByPeriod.value[mo.period]
+    summaryDrafts[mo.period] = existing?.content ?? ''
+    summaryStatus[mo.period] = existing?.status ?? 'draft'
+  }
 }
 
 async function load() {
   loading.value = true
-  const [start, e, s] = await Promise.all([
+  const [start, e, s, sm] = await Promise.all([
     getSiwesStart(),
     client.from('entries').select('*').eq('student_id', uid.value!),
     client.from('signoffs').select('*').eq('student_id', uid.value!),
+    client.from('summaries').select('*').eq('student_id', uid.value!),
   ])
   startStr.value = start
   entries.value = e.data ?? []
   signoffs.value = s.data ?? []
+  summaries.value = sm.data ?? []
   loading.value = false
   await nextTick()
   selectedIdx.value = activeIdx.value
   seedSelected()
+}
+
+async function saveSummary(mo: any) {
+  const content = (summaryDrafts[mo.period] ?? '').trim()
+  if (!content) {
+    alert('Write your monthly summary first.')
+    return
+  }
+  savingSummary.value = mo.period
+  try {
+    const d = new Date(mo.start + 'T00:00:00')
+    const payload = {
+      content,
+      status: summaryStatus[mo.period] || 'draft',
+      period: mo.period,
+      month: d.getMonth() + 1, // kept only as a human-readable fallback
+      year: d.getFullYear(),
+    }
+    const existing = summaryByPeriod.value[mo.period]
+    const { error } = existing
+      ? await client.from('summaries').update(payload).eq('id', existing.id)
+      : await client.from('summaries').insert({ ...payload, student_id: uid.value! })
+    if (error) throw error
+    await load()
+  } catch (err: any) {
+    alert(err?.data?.statusMessage || err?.message || 'Could not save summary')
+  } finally {
+    savingSummary.value = null
+  }
 }
 
 function pickWeek(i: number) {
@@ -204,8 +262,51 @@ onMounted(load)
         </div>
       </div>
 
+      <!-- Monthly summary — appears in place after each 4-week block -->
+      <section v-if="currentMonth" class="card mt-4 overflow-hidden border-2 border-caleb-cyan-dark">
+        <header class="flex flex-wrap items-center justify-between gap-2 border-b border-caleb-cyan-dark/30 bg-caleb-cyan-dark/10 px-4 py-3">
+          <div>
+            <h2 class="font-semibold text-caleb-navy">Month {{ currentMonth.period }} Summary</h2>
+            <p class="text-xs text-gray-500">
+              Weeks {{ currentMonth.week_from }}–{{ currentMonth.week_to }} · {{ fmt(currentMonth.start) }} – {{ fmt(currentMonth.end) }}
+            </p>
+          </div>
+          <StatusPill v-if="summaryByPeriod[currentMonth.period]" :status="summaryByPeriod[currentMonth.period].status" />
+        </header>
+
+        <div class="p-4">
+          <div v-if="!currentMonthComplete" class="rounded-lg bg-gray-50 px-3 py-3 text-sm text-gray-500">
+            Complete all four weeks (Weeks {{ currentMonth.week_from }}–{{ currentMonth.week_to }}) to write your Month {{ currentMonth.period }} summary.
+          </div>
+
+          <template v-else>
+            <p class="mb-2 text-sm text-gray-500">Summarise what you learned and did across these four weeks.</p>
+            <textarea
+              v-model="summaryDrafts[currentMonth.period]"
+              rows="6"
+              class="field logbook-lines"
+              placeholder="Your monthly summary…"
+            />
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+              <select v-model="summaryStatus[currentMonth.period]" class="field max-w-[12rem]">
+                <option value="draft">Draft</option>
+                <option value="submitted">Submit for approval</option>
+              </select>
+              <button class="btn-primary" :disabled="savingSummary === currentMonth.period" @click="saveSummary(currentMonth)">
+                {{ savingSummary === currentMonth.period ? 'Saving…' : summaryByPeriod[currentMonth.period] ? 'Update summary' : 'Save summary' }}
+              </button>
+            </div>
+
+            <!-- Supervisor comments / approval on the summary -->
+            <div v-if="summaryByPeriod[currentMonth.period]" class="mt-3">
+              <EntryFeedback :summary-id="summaryByPeriod[currentMonth.period].id" />
+            </div>
+          </template>
+        </div>
+      </section>
+
       <p class="mt-3 text-xs text-gray-400">
-        Fill in all five days to unlock the next week. Completed weeks stay editable.
+        Fill in all five days to unlock the next week. A monthly summary appears after every 4 weeks.
       </p>
     </template>
   </div>
