@@ -2,12 +2,25 @@
 const client = useSupabaseClient()
 const user = useSupabaseUser()
 const { profile, load } = useProfile()
+const notifications = useNotifications()
+const toast = useToast()
 const open = ref(false) // mobile nav
 
 await load()
 // Reload the profile whenever the auth user settles/changes, so the header
 // name + role-based nav appear even if the session hydrates after first render.
 watch(user, () => load(true))
+
+// Notifications: load the list and open a realtime channel once we have a user;
+// each new row pops a toast. Tear down on sign-out.
+function startNotifications() {
+  if (!currentUid()) return
+  notifications.load()
+  notifications.subscribe((n) => toast.push({ title: n.title, body: n.body ?? undefined, link: n.link ?? undefined }))
+}
+onMounted(startNotifications)
+watch(user, (u) => (u ? startNotifications() : notifications.unsubscribe()))
+onBeforeUnmount(() => notifications.unsubscribe())
 
 // Nav links per role.
 const NAV: Record<string, { to: string; label: string }[]> = {
@@ -27,6 +40,8 @@ const NAV: Record<string, { to: string; label: string }[]> = {
 const links = computed(() => (profile.value ? NAV[profile.value.role] ?? [] : []))
 
 async function signOut() {
+  notifications.unsubscribe()
+  notifications.items.value = []
   await client.auth.signOut()
   profile.value = null // clear cached role so the next sign-in starts fresh
   await navigateTo('/login')
@@ -41,6 +56,7 @@ async function signOut() {
         <AppLogo :size="38" />
 
         <div class="flex items-center gap-3">
+          <NotificationBell v-if="profile" />
           <div class="hidden text-right sm:block">
             <p class="text-sm font-semibold leading-tight">{{ profile?.full_name || 'User' }}</p>
             <p class="text-xs text-gray-500">{{ profile ? ROLE_LABELS[profile.role] : '' }}</p>
@@ -86,5 +102,7 @@ async function signOut() {
     <main class="mx-auto max-w-6xl px-4 py-6">
       <slot />
     </main>
+
+    <ToastHost />
   </div>
 </template>

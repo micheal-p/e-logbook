@@ -28,16 +28,23 @@ const mailto = computed(
 </script>
 
 <template>
-  <div>
+  <div class="space-y-8">
     <!-- Passport, supervisors, SIWES countdown, delete account -->
     <StudentStatus />
 
-    <!-- Work-supervisor sign-off link -->
-    <div class="card mb-6 p-4">
-      <h2 class="font-semibold text-caleb-navy">Work supervisor sign-off</h2>
+    <!-- Primary task: the weekly logbook -->
+    <section>
+      <h1 class="mb-1 text-2xl font-bold text-caleb-text">My Logbook</h1>
+      <p class="mb-4 text-sm text-gray-500">Fill in each weekday. Complete a week to unlock the next.</p>
+      <WeekLogbook />
+    </section>
+
+    <!-- Next step: send completed weeks to the work supervisor to sign -->
+    <section class="card p-4">
+      <h2 class="font-semibold text-caleb-navy">Send for sign-off</h2>
       <p class="mb-3 mt-1 text-sm text-gray-500">
-        Generate a link and send it to your company/work supervisor. They can review your completed
-        weeks and sign them — no account needed.
+        When a week is complete, generate a link and send it to your company/work supervisor. They can
+        review and sign your completed weeks — no account needed.
       </p>
       <button v-if="!link" class="btn-secondary" :disabled="generating" @click="generateLink">
         {{ generating ? 'Generating…' : 'Generate sign-off link' }}
@@ -47,11 +54,6 @@ const mailto = computed(
         <button class="btn-outline" @click="copyLink">{{ copied ? 'Copied!' : 'Copy' }}</button>
         <a class="btn-secondary" :href="mailto">Email it</a>
       </div>
-    </div>
-
-    <h1 class="mb-1 text-2xl font-bold text-caleb-text">My Logbook</h1>
-    <p class="mb-4 text-sm text-gray-500">Fill in each weekday. Complete a week to unlock the next.</p>
-
-    <WeekLogbook />
+    </section>
   </div>
 </template>
