@@ -9,7 +9,7 @@ const savingId = ref('')
 const savedId = ref('')
 
 // Editable row state per student, seeded from existing assignments.
-const rows = reactive<Record<string, { supervisor_id: string; company_supervisor_id: string; start_date: string }>>({})
+const rows = reactive<Record<string, { supervisor_id: string; company_supervisor_id: string }>>({})
 
 const students = computed(() => profiles.value.filter((p) => p.role === 'student'))
 const academics = computed(() => profiles.value.filter((p) => p.role === 'supervisor'))
@@ -35,7 +35,6 @@ function rowFor(id: string) {
     rows[id] = {
       supervisor_id: a?.supervisor_id || '',
       company_supervisor_id: a?.company_supervisor_id || '',
-      start_date: a?.start_date || '',
     }
   }
   return rows[id]
@@ -62,7 +61,6 @@ async function save(s: any) {
       student_id: s.id,
       supervisor_id: r.supervisor_id || null,
       company_supervisor_id: r.company_supervisor_id || null,
-      start_date: r.start_date || null,
     },
     { onConflict: 'student_id' }
   )
@@ -80,7 +78,7 @@ onMounted(load)
   <div>
     <h1 class="mb-1 text-2xl font-bold text-caleb-text">Assign Students</h1>
     <p class="mb-4 text-sm text-gray-500">
-      Search a student by matric number or name, then set their supervisors and SIWES start date.
+      Search a student by matric number or name, then set their academic supervisor. The SIWES start date is set once for everyone on the Overview page.
     </p>
 
     <div v-if="loading" class="py-12 text-center text-sm text-gray-400">Loading…</div>
@@ -105,7 +103,7 @@ onMounted(load)
             <span v-else class="pill bg-green-100 text-green-800">Assigned</span>
           </div>
 
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label class="label">Academic supervisor</label>
               <select v-model="rowFor(s.id).supervisor_id" class="field">
@@ -119,10 +117,6 @@ onMounted(load)
                 <option value="">— none —</option>
                 <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.full_name || c.email }}</option>
               </select>
-            </div>
-            <div>
-              <label class="label">SIWES start date</label>
-              <input v-model="rowFor(s.id).start_date" type="date" class="field" />
             </div>
           </div>
 

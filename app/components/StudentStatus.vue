@@ -11,13 +11,14 @@ const SIWES_DAYS = SIWES_WEEKS * 7
 
 const me = ref<any | null>(null)
 const assignment = ref<any | null>(null)
+const siwesStart = ref<string | null>(null)
 const loading = ref(true)
 const uploading = ref(false)
 const deleting = ref(false)
 
 async function loadAll() {
   loading.value = true
-  const [p, a] = await Promise.all([
+  const [p, a, start] = await Promise.all([
     client.from('profiles').select('*').eq('id', uid.value!).single(),
     client
       .from('assignments')
@@ -26,18 +27,18 @@ async function loadAll() {
       )
       .eq('student_id', uid.value!)
       .maybeSingle(),
+    getSiwesStart(),
   ])
   me.value = p.data
   assignment.value = a.data
+  siwesStart.value = start
   loading.value = false
 }
 
 // --- SIWES countdown -------------------------------------------------------
 const countdown = computed(() => {
-  if (!assignment.value) return null
-  const startStr = assignment.value.start_date || assignment.value.created_at?.slice(0, 10)
-  if (!startStr) return null
-  const start = new Date(startStr + 'T00:00:00')
+  if (!siwesStart.value) return null
+  const start = new Date(siwesStart.value + 'T00:00:00')
   const today = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00')
   const elapsed = Math.floor((today.getTime() - start.getTime()) / 86400000)
   const remaining = Math.max(0, SIWES_DAYS - elapsed)

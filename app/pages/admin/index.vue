@@ -8,9 +8,14 @@ const loading = ref(true)
 
 const ROLES = ['student', 'company_supervisor', 'supervisor', 'admin', 'super_admin']
 
+// Single, cohort-wide SIWES start date.
+const siwesStart = ref<string>('')
+const savingStart = ref(false)
+const savedStart = ref(false)
+
 async function load() {
   loading.value = true
-  const [p, a, e] = await Promise.all([
+  const [p, a, e, start] = await Promise.all([
     client.from('profiles').select('*').order('created_at', { ascending: true }),
     client
       .from('assignments')
@@ -18,13 +23,25 @@ async function load() {
         '*, supervisor:profiles!assignments_supervisor_id_fkey(full_name), company:profiles!assignments_company_supervisor_id_fkey(full_name)'
       ),
     client.from('entries').select('student_id'),
+    getSiwesStart(),
   ])
   profiles.value = p.data ?? []
   assignments.value = a.data ?? []
   const counts: Record<string, number> = {}
   for (const row of e.data ?? []) counts[row.student_id] = (counts[row.student_id] ?? 0) + 1
   entryCounts.value = counts
+  siwesStart.value = start ?? ''
   loading.value = false
+}
+
+async function saveStart() {
+  savingStart.value = true
+  savedStart.value = false
+  const { error } = await setSiwesStart(siwesStart.value || null)
+  savingStart.value = false
+  if (error) return alert(error.message)
+  savedStart.value = true
+  setTimeout(() => (savedStart.value = false), 1500)
 }
 
 const students = computed(() => profiles.value.filter((p) => p.role === 'student'))
@@ -63,6 +80,24 @@ onMounted(load)
         <div class="card p-4"><p class="text-2xl font-bold text-caleb-navy">{{ assignments.length }}</p><p class="text-xs text-gray-500">Assigned</p></div>
         <div class="card p-4"><p class="text-2xl font-bold text-caleb-cyan-dark">{{ students.length - assignments.length }}</p><p class="text-xs text-gray-500">Unassigned</p></div>
       </div>
+
+      <!-- Cohort-wide SIWES start date -->
+      <section class="mb-8">
+        <div class="card p-4">
+          <h2 class="mb-1 text-lg font-semibold">SIWES start date</h2>
+          <p class="mb-3 text-sm text-gray-500">
+            One date for the whole cohort. Every student's weekly logbook and countdown is measured from here.
+          </p>
+          <div class="flex flex-wrap items-center gap-3">
+            <input v-model="siwesStart" type="date" class="field max-w-xs" />
+            <button class="btn-primary" :disabled="savingStart" @click="saveStart">
+              {{ savingStart ? 'Saving…' : 'Save' }}
+            </button>
+            <span v-if="savedStart" class="text-sm text-green-700">Saved ✓</span>
+            <span v-if="!siwesStart" class="text-sm text-amber-600">Not set — students can't log yet.</span>
+          </div>
+        </div>
+      </section>
 
       <!-- Students -->
       <section class="mb-10">

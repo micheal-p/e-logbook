@@ -14,18 +14,17 @@ export default defineEventHandler(async (event) => {
   if (!link) throw createError({ statusCode: 404, statusMessage: 'This link is invalid or has expired' })
 
   const sid = link.student_id
-  const [{ data: student }, { data: assignment }, { data: entries }, { data: signoffs }] =
+  const [{ data: student }, { data: setting }, { data: entries }, { data: signoffs }] =
     await Promise.all([
       svc.from('profiles').select('full_name, matric_no, department, company_name, avatar_url').eq('id', sid).single(),
-      svc.from('assignments').select('start_date, created_at, company:profiles!assignments_company_supervisor_id_fkey(full_name)').eq('student_id', sid).maybeSingle(),
+      svc.from('settings').select('value').eq('key', 'siwes_start_date').maybeSingle(),
       svc.from('entries').select('entry_date, week_number, content, media_url').eq('student_id', sid).order('entry_date'),
       svc.from('signoffs').select('*').eq('student_id', sid),
     ])
 
   return {
     student,
-    startDate: assignment?.start_date || assignment?.created_at?.slice(0, 10) || null,
-    companySupervisor: (assignment as any)?.company?.full_name ?? null,
+    startDate: setting?.value || null,
     entries: entries ?? [],
     signoffs: signoffs ?? [],
   }

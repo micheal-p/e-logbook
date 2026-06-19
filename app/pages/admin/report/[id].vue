@@ -11,6 +11,7 @@ const SIWES_DAYS = 24 * 7
 
 const student = ref<any | null>(null)
 const assignment = ref<any | null>(null)
+const siwesStart = ref<string | null>(null)
 const entries = ref<any[]>([])
 const summaries = ref<any[]>([])
 const signoffs = ref<any[]>([])
@@ -27,7 +28,7 @@ const approvalsByEntry = ref<any[]>([])
 const approvalsBySummary = ref<any[]>([])
 
 const period = computed(() => {
-  const startStr = assignment.value?.start_date || assignment.value?.created_at?.slice(0, 10)
+  const startStr = siwesStart.value
   if (!startStr) return null
   const start = new Date(startStr + 'T00:00:00')
   const end = new Date(start.getTime() + SIWES_DAYS * 86400000)
@@ -50,6 +51,7 @@ async function load() {
 
   const { data: so } = await client.from('signoffs').select('*').eq('student_id', id).order('week_number')
   signoffs.value = so ?? []
+  siwesStart.value = await getSiwesStart()
 
   const eIds = entries.value.map((x) => x.id)
   const sIds = summaries.value.map((x) => x.id)

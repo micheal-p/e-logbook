@@ -5,7 +5,7 @@
 const client = useSupabaseClient<any>()
 const uid = useUid()
 
-const assignment = ref<any | null>(null)
+const startStr = ref<string | null>(null) // cohort-wide SIWES start date
 const entries = ref<any[]>([])
 const signoffs = ref<any[]>([])
 const loading = ref(true)
@@ -15,9 +15,6 @@ const savingDate = ref<string | null>(null)
 const drafts = reactive<Record<string, string>>({})
 const files = reactive<Record<string, File | null>>({})
 
-const startStr = computed(
-  () => assignment.value?.start_date || assignment.value?.created_at?.slice(0, 10) || null
-)
 const entriesByDate = computed<Record<string, any>>(() => {
   const m: Record<string, any> = {}
   for (const e of entries.value) m[e.entry_date] = e
@@ -49,12 +46,12 @@ function seedSelected() {
 
 async function load() {
   loading.value = true
-  const [a, e, s] = await Promise.all([
-    client.from('assignments').select('start_date, created_at').eq('student_id', uid.value!).maybeSingle(),
+  const [start, e, s] = await Promise.all([
+    getSiwesStart(),
     client.from('entries').select('*').eq('student_id', uid.value!),
     client.from('signoffs').select('*').eq('student_id', uid.value!),
   ])
-  assignment.value = a.data
+  startStr.value = start
   entries.value = e.data ?? []
   signoffs.value = s.data ?? []
   loading.value = false
