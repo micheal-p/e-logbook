@@ -99,8 +99,9 @@ onMounted(load)
                     {{ assignmentFor(s.id)?.company?.full_name || 'Unassigned' }}
                   </span>
                 </td>
-                <td class="px-4 py-2">
+                <td class="whitespace-nowrap px-4 py-2">
                   <NuxtLink :to="`/admin/student/${s.id}`" class="text-caleb-cyan-dark hover:underline">View</NuxtLink>
+                  <NuxtLink :to="`/admin/report/${s.id}`" class="ml-3 text-caleb-cyan-dark hover:underline">Report</NuxtLink>
                 </td>
               </tr>
             </tbody>

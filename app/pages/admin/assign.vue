@@ -8,7 +8,7 @@ const saving = ref(false)
 const msg = ref('')
 const error = ref('')
 
-const form = reactive({ student_id: '', supervisor_id: '', company_supervisor_id: '' })
+const form = reactive({ student_id: '', supervisor_id: '', company_supervisor_id: '', start_date: '' })
 
 const students = computed(() => profiles.value.filter((p) => p.role === 'student'))
 const academics = computed(() => profiles.value.filter((p) => p.role === 'supervisor'))
@@ -34,6 +34,7 @@ function editRow(a: any) {
   form.student_id = a.student_id
   form.supervisor_id = a.supervisor_id ?? ''
   form.company_supervisor_id = a.company_supervisor_id ?? ''
+  form.start_date = a.start_date ?? ''
   msg.value = ''
 }
 
@@ -51,6 +52,7 @@ async function save() {
       student_id: form.student_id,
       supervisor_id: form.supervisor_id || null,
       company_supervisor_id: form.company_supervisor_id || null,
+      start_date: form.start_date || null,
     },
     { onConflict: 'student_id' }
   )
@@ -60,7 +62,7 @@ async function save() {
     return
   }
   msg.value = 'Assignment saved.'
-  Object.assign(form, { student_id: '', supervisor_id: '', company_supervisor_id: '' })
+  Object.assign(form, { student_id: '', supervisor_id: '', company_supervisor_id: '', start_date: '' })
   await load()
 }
 
@@ -104,6 +106,11 @@ onMounted(load)
               </select>
             </div>
           </div>
+          <div class="sm:w-1/2">
+            <label class="label">SIWES start date</label>
+            <input v-model="form.start_date" type="date" class="field" />
+            <p class="mt-1 text-xs text-gray-400">The student's 24-week countdown runs from this date.</p>
+          </div>
 
           <p v-if="error" class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error }}</p>
           <p v-if="msg" class="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">{{ msg }}</p>
@@ -126,6 +133,7 @@ onMounted(load)
               <th class="px-4 py-2">Student</th>
               <th class="px-4 py-2">Academic Sup.</th>
               <th class="px-4 py-2">Company Sup.</th>
+              <th class="px-4 py-2">Start date</th>
               <th class="px-4 py-2"></th>
             </tr>
           </thead>
@@ -134,6 +142,7 @@ onMounted(load)
               <td class="px-4 py-2 font-medium">{{ a.student?.full_name || '—' }}</td>
               <td class="px-4 py-2">{{ a.supervisor?.full_name || '—' }}</td>
               <td class="px-4 py-2">{{ a.company?.full_name || '—' }}</td>
+              <td class="px-4 py-2">{{ a.start_date || '—' }}</td>
               <td class="px-4 py-2">
                 <button class="text-caleb-cyan-dark hover:underline" @click="editRow(a)">Edit</button>
               </td>

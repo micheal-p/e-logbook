@@ -18,6 +18,13 @@ const file = ref<File | null>(null)
 const error = ref('')
 const saving = ref(false)
 
+// The weekday for the chosen date (Monday, Tuesday, …).
+const weekday = computed(() =>
+  form.entry_date
+    ? new Date(form.entry_date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long' })
+    : ''
+)
+
 function pickFile(e: Event) {
   const f = (e.target as HTMLInputElement).files?.[0]
   file.value = f ?? null
@@ -71,7 +78,10 @@ async function save() {
   <form class="space-y-4" @submit.prevent="save">
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div class="sm:col-span-2">
-        <label class="label">Date</label>
+        <label class="label">
+          Date
+          <span v-if="weekday" class="ml-1 font-normal text-caleb-cyan-dark">· {{ weekday }}</span>
+        </label>
         <input v-model="form.entry_date" type="date" class="field" />
       </div>
       <div>

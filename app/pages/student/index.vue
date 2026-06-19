@@ -43,6 +43,9 @@ onMounted(load)
 
 <template>
   <div>
+    <!-- Passport, supervisors, SIWES countdown, delete account -->
+    <StudentStatus />
+
     <div class="mb-6 flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-caleb-text">My Logbook</h1>
