@@ -1,44 +1,30 @@
 <script setup lang="ts">
-const client = useSupabaseClient<any>()
-const user = useSupabaseUser()
+const link = ref('')
+const generating = ref(false)
+const copied = ref(false)
 
-const entries = ref<any[]>([])
-const loading = ref(true)
-const showForm = ref(false)
-const editing = ref<any | null>(null)
-
-async function load() {
-  loading.value = true
-  const { data } = await client
-    .from('entries')
-    .select('*')
-    .eq('student_id', user.value!.id)
-    .order('entry_date', { ascending: false })
-  entries.value = data ?? []
-  loading.value = false
+async function generateLink() {
+  generating.value = true
+  try {
+    const { token } = await $fetch<{ token: string }>('/api/share/create', { method: 'POST' })
+    link.value = `${window.location.origin}/sign/${token}`
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Could not generate link')
+  } finally {
+    generating.value = false
+  }
 }
-
-function newEntry() {
-  editing.value = null
-  showForm.value = true
+function copyLink() {
+  navigator.clipboard?.writeText(link.value)
+  copied.value = true
+  setTimeout(() => (copied.value = false), 1500)
 }
-function edit(entry: any) {
-  editing.value = entry
-  showForm.value = true
-}
-async function remove(entry: any) {
-  if (!confirm('Delete this entry? This cannot be undone.')) return
-  const { error } = await client.from('entries').delete().eq('id', entry.id)
-  if (error) return alert(error.message)
-  await load()
-}
-async function onSaved() {
-  showForm.value = false
-  editing.value = null
-  await load()
-}
-
-onMounted(load)
+const mailto = computed(
+  () =>
+    `mailto:?subject=${encodeURIComponent('SIWES logbook sign-off')}&body=${encodeURIComponent(
+      'Please review and sign my SIWES logbook here: ' + link.value
+    )}`
+)
 </script>
 
 <template>
@@ -46,39 +32,26 @@ onMounted(load)
     <!-- Passport, supervisors, SIWES countdown, delete account -->
     <StudentStatus />
 
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-caleb-text">My Logbook</h1>
-        <p class="text-sm text-gray-500">Your daily SIWES task entries.</p>
+    <!-- Work-supervisor sign-off link -->
+    <div class="card mb-6 p-4">
+      <h2 class="font-semibold text-caleb-navy">Work supervisor sign-off</h2>
+      <p class="mb-3 mt-1 text-sm text-gray-500">
+        Generate a link and send it to your company/work supervisor. They can review your completed
+        weeks and sign them — no account needed.
+      </p>
+      <button v-if="!link" class="btn-secondary" :disabled="generating" @click="generateLink">
+        {{ generating ? 'Generating…' : 'Generate sign-off link' }}
+      </button>
+      <div v-else class="flex flex-wrap items-center gap-2">
+        <input :value="link" readonly class="field max-w-md" @focus="($event.target as HTMLInputElement).select()" />
+        <button class="btn-outline" @click="copyLink">{{ copied ? 'Copied!' : 'Copy' }}</button>
+        <a class="btn-secondary" :href="mailto">Email it</a>
       </div>
-      <button v-if="!showForm" class="btn-primary" @click="newEntry">+ New entry</button>
     </div>
 
-    <!-- Create / edit -->
-    <div v-if="showForm" class="card mb-6 p-4 sm:p-6">
-      <h2 class="mb-4 font-semibold">{{ editing ? 'Edit entry' : 'New entry' }}</h2>
-      <EntryForm :entry="editing" @saved="onSaved" @cancel="showForm = false" />
-    </div>
+    <h1 class="mb-1 text-2xl font-bold text-caleb-text">My Logbook</h1>
+    <p class="mb-4 text-sm text-gray-500">Fill in each weekday. Complete a week to unlock the next.</p>
 
-    <!-- Loading -->
-    <div v-if="loading" class="py-12 text-center text-sm text-gray-400">Loading entries…</div>
-
-    <!-- Empty -->
-    <div v-else-if="!entries.length" class="card p-10 text-center">
-      <p class="text-gray-500">No entries yet.</p>
-      <button class="btn-primary mt-4" @click="newEntry">Write your first entry</button>
-    </div>
-
-    <!-- List -->
-    <div v-else class="space-y-6">
-      <EntryCard
-        v-for="e in entries"
-        :key="e.id"
-        :entry="e"
-        :can-edit="true"
-        @edit="edit"
-        @delete="remove"
-      />
-    </div>
+    <WeekLogbook />
   </div>
 </template>

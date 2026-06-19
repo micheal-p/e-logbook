@@ -13,7 +13,7 @@ export default defineNuxtConfig({
       // Pages reachable while logged OUT. Everything else requires auth.
       // /api/** is excluded so server routes return proper JSON 401/403 (each
       // route does its own auth check) instead of an HTML redirect.
-      exclude: ['/', '/about', '/siwes', '/signup', '/reset-password', '/update-password', '/api/**'],
+      exclude: ['/', '/about', '/siwes', '/signup', '/reset-password', '/update-password', '/api/**', '/sign/**'],
     },
   },
 

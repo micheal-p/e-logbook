@@ -13,6 +13,7 @@ const student = ref<any | null>(null)
 const assignment = ref<any | null>(null)
 const entries = ref<any[]>([])
 const summaries = ref<any[]>([])
+const signoffs = ref<any[]>([])
 const loading = ref(true)
 
 function weekday(d: string) {
@@ -46,6 +47,9 @@ async function load() {
   assignment.value = a.data
   entries.value = e.data ?? []
   summaries.value = s.data ?? []
+
+  const { data: so } = await client.from('signoffs').select('*').eq('student_id', id).order('week_number')
+  signoffs.value = so ?? []
 
   const eIds = entries.value.map((x) => x.id)
   const sIds = summaries.value.map((x) => x.id)
@@ -150,6 +154,25 @@ onMounted(load)
             <span v-else class="ml-1 italic text-gray-400">none</span>
           </p>
         </article>
+      </section>
+
+      <!-- Work supervisor sign-offs -->
+      <section class="mt-8">
+        <h2 class="mb-3 border-b border-gray-300 pb-1 text-base font-bold text-caleb-navy">
+          Work Supervisor Sign-offs ({{ signoffs.length }})
+        </h2>
+        <p v-if="!signoffs.length" class="text-sm text-gray-400">No weeks signed yet.</p>
+        <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div v-for="so in signoffs" :key="so.id" class="break-inside-avoid rounded border border-gray-200 p-3">
+            <p class="text-sm font-semibold text-caleb-navy">
+              Week {{ so.week_number }}
+              <span class="font-normal text-gray-500">({{ so.week_start }} – {{ so.week_end }})</span>
+            </p>
+            <p class="text-sm">{{ so.signer_name }} <span class="text-gray-500">· {{ so.signer_role }}</span></p>
+            <p v-if="so.comment" class="mt-1 text-xs italic text-gray-600">"{{ so.comment }}"</p>
+            <img v-if="so.signature" :src="so.signature" class="mt-1 h-14 rounded border bg-white" alt="signature" />
+          </div>
+        </div>
       </section>
 
       <footer class="mt-10 border-t border-gray-300 pt-3 text-center text-xs text-gray-400">
