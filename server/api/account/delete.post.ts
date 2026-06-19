@@ -5,10 +5,11 @@ import { serverSupabaseUser, serverSupabaseServiceRole } from '#supabase/server'
 // (all FK ON DELETE CASCADE).
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Not signed in' })
+  const uid = (user as any)?.sub ?? (user as any)?.id // v2 returns JWT claims (sub = user id)
+  if (!uid) throw createError({ statusCode: 401, statusMessage: 'Not signed in' })
 
   const svc = serverSupabaseServiceRole(event)
-  const { error } = await svc.auth.admin.deleteUser(user.id)
+  const { error } = await svc.auth.admin.deleteUser(uid)
   if (error) throw createError({ statusCode: 400, statusMessage: error.message })
 
   return { ok: true }

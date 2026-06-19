@@ -6,7 +6,8 @@ import { serverSupabaseUser, serverSupabaseServiceRole } from '#supabase/server'
 // caller's own folder (<userId>/...).
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Not signed in' })
+  const uid = (user as any)?.sub ?? (user as any)?.id // v2 returns JWT claims (sub = user id)
+  if (!uid) throw createError({ statusCode: 401, statusMessage: 'Not signed in' })
 
   const form = await readMultipartFormData(event)
   const file = form?.find((f) => f.name === 'file')
@@ -21,7 +22,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const ext = (file.filename?.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
-  const path = `${user.id}/${Date.now()}.${ext}`
+  const path = `${uid}/${Date.now()}.${ext}`
 
   const svc = serverSupabaseServiceRole(event)
   const { error } = await svc.storage

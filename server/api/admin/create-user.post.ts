@@ -7,7 +7,8 @@ const ALLOWED_ROLES = ['supervisor', 'company_supervisor', 'student', 'admin'] a
 
 export default defineEventHandler(async (event) => {
   const caller = await serverSupabaseUser(event)
-  if (!caller) throw createError({ statusCode: 401, statusMessage: 'Not signed in' })
+  const callerId = (caller as any)?.sub ?? (caller as any)?.id // v2 returns JWT claims (sub = user id)
+  if (!callerId) throw createError({ statusCode: 401, statusMessage: 'Not signed in' })
 
   const admin = serverSupabaseServiceRole(event)
 
@@ -15,7 +16,7 @@ export default defineEventHandler(async (event) => {
   const { data: me } = await admin
     .from('profiles')
     .select('role')
-    .eq('id', caller.id)
+    .eq('id', callerId)
     .single()
   if (!me || !['admin', 'super_admin'].includes(me.role)) {
     throw createError({ statusCode: 403, statusMessage: 'Admins only' })
