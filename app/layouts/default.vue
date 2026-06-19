@@ -1,9 +1,13 @@
 <script setup lang="ts">
 const client = useSupabaseClient()
+const user = useSupabaseUser()
 const { profile, load } = useProfile()
 const open = ref(false) // mobile nav
 
 await load()
+// Reload the profile whenever the auth user settles/changes, so the header
+// name + role-based nav appear even if the session hydrates after first render.
+watch(user, () => load(true))
 
 // Nav links per role.
 const NAV: Record<string, { to: string; label: string }[]> = {
