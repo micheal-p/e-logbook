@@ -24,6 +24,7 @@ const links = computed(() => (profile.value ? NAV[profile.value.role] ?? [] : []
 
 async function signOut() {
   await client.auth.signOut()
+  profile.value = null // clear cached role so the next sign-in starts fresh
   await navigateTo('/login')
 }
 </script>

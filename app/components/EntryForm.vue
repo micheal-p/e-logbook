@@ -25,14 +25,12 @@ function pickFile(e: Event) {
 
 async function uploadIfNeeded(): Promise<string | null> {
   if (!file.value) return form.media_url
-  const ext = file.value.name.split('.').pop()
-  const path = `${user.value!.id}/${Date.now()}.${ext}`
-  const { error: e } = await client.storage.from('logbook-media').upload(path, file.value, {
-    upsert: true,
-  })
-  if (e) throw e
-  const { data } = client.storage.from('logbook-media').getPublicUrl(path)
-  return data.publicUrl
+  // Upload via the server route (service-role) so it doesn't depend on the
+  // browser attaching the auth token.
+  const fd = new FormData()
+  fd.append('file', file.value)
+  const res = await $fetch<{ url: string }>('/api/upload', { method: 'POST', body: fd })
+  return res.url
 }
 
 async function save() {

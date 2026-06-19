@@ -14,7 +14,7 @@ async function login() {
     return
   }
   loading.value = true
-  const { error: e } = await client.auth.signInWithPassword({
+  const { data, error: e } = await client.auth.signInWithPassword({
     email: email.value.trim(),
     password: password.value,
   })
@@ -23,10 +23,16 @@ async function login() {
     error.value = e.message
     return
   }
-  // Force a fresh profile load, then go straight to this role's dashboard.
+  // Read the role straight from the just-signed-in user (don't rely on cached
+  // client state, which can lag a tick right after sign-in).
+  const { data: prof } = await client
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user!.id)
+    .single()
   const { load } = useProfile()
-  const profile = await load(true)
-  await navigateTo(ROLE_HOME[profile?.role ?? 'student'] ?? '/student')
+  await load(true)
+  await navigateTo(ROLE_HOME[(prof as any)?.role ?? 'student'] ?? '/student')
 }
 </script>
 
