@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-caleb-surface text-caleb-text antialiased;
+  }
+  body {
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold
+           transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-caleb-navy text-white hover:bg-caleb-navy-dark focus:ring-caleb-navy;
+  }
+  .btn-secondary {
+    @apply btn bg-caleb-cyan text-caleb-navy hover:brightness-95 focus:ring-caleb-cyan;
+  }
+  .btn-outline {
+    @apply btn border border-gray-300 bg-white text-caleb-navy hover:bg-gray-50 focus:ring-caleb-cyan;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-600;
+  }
+
+  /* Form controls */
+  .field {
+    @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
+           focus:border-caleb-cyan focus:outline-none focus:ring-1 focus:ring-caleb-cyan;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-caleb-navy;
+  }
+
+  /* Cards */
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white shadow-sm;
+  }
+
+  /* Status pills */
+  .pill {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  /* A logbook page: ruled lines like real paper */
+  .logbook-lines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 1.85rem,
+      #d4e6f3 1.85rem,
+      #d4e6f3 calc(1.85rem + 1px)
+    );
+    line-height: 1.9rem;
+  }
+}
