@@ -23,10 +23,10 @@ async function login() {
     error.value = e.message
     return
   }
-  // Force a fresh profile load, then let middleware route us home.
+  // Force a fresh profile load, then go straight to this role's dashboard.
   const { load } = useProfile()
-  await load(true)
-  await navigateTo('/')
+  const profile = await load(true)
+  await navigateTo(ROLE_HOME[profile?.role ?? 'student'] ?? '/student')
 }
 </script>
 

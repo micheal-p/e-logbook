@@ -49,8 +49,8 @@ async function signup() {
   // If email confirmation is on, there is no session yet.
   if (data.session) {
     const { load } = useProfile()
-    await load(true)
-    await navigateTo('/')
+    const profile = await load(true)
+    await navigateTo(ROLE_HOME[profile?.role ?? 'student'] ?? '/student')
   } else {
     done.value = true
   }

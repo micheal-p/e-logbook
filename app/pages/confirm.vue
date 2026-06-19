@@ -9,8 +9,8 @@ watch(
   async (u) => {
     if (u) {
       const { load } = useProfile()
-      await load(true)
-      await navigateTo('/')
+      const profile = await load(true)
+      await navigateTo(ROLE_HOME[profile?.role ?? 'student'] ?? '/student')
     }
   },
   { immediate: true }

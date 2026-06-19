@@ -11,7 +11,9 @@ export default defineNuxtConfig({
       login: '/login',
       callback: '/confirm',
       // Pages reachable while logged OUT. Everything else requires auth.
-      exclude: ['/', '/about', '/siwes', '/signup', '/reset-password', '/update-password'],
+      // /api/** is excluded so server routes return proper JSON 401/403 (each
+      // route does its own auth check) instead of an HTML redirect.
+      exclude: ['/', '/about', '/siwes', '/signup', '/reset-password', '/update-password', '/api/**'],
     },
   },
 

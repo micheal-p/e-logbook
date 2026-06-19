@@ -15,6 +15,7 @@ const NAV: Record<string, { to: string; label: string }[]> = {
   supervisor: [{ to: '/supervisor', label: 'My Students' }],
   admin: [
     { to: '/admin', label: 'Overview' },
+    { to: '/admin/accounts', label: 'Create Accounts' },
     { to: '/admin/assign', label: 'Assign Students' },
   ],
   super_admin: [{ to: '/super-admin', label: 'Overview' }],
@@ -39,6 +40,9 @@ async function signOut() {
             <p class="text-sm font-semibold leading-tight">{{ profile?.full_name || 'User' }}</p>
             <p class="text-xs text-gray-500">{{ profile ? ROLE_LABELS[profile.role] : '' }}</p>
           </div>
+          <NuxtLink to="/update-password" class="hidden text-sm text-caleb-cyan-dark hover:underline sm:inline">
+            Change password
+          </NuxtLink>
           <button class="btn-outline" @click="signOut">Sign out</button>
           <button
             class="rounded-lg border border-gray-300 p-2 sm:hidden"

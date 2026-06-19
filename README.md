@@ -74,7 +74,9 @@ supervisors and admins physically cannot edit student content.
 ## Deploy (Vercel)
 1. Push to GitHub (verify `.env` is **not** committed).
 2. Import the repo into Vercel (auto-detects Nuxt).
-3. Add `SUPABASE_URL` + `SUPABASE_KEY` as environment variables.
+3. Add `SUPABASE_URL`, `SUPABASE_KEY` (publishable), and `SUPABASE_SERVICE_KEY`
+   (secret, server-only — for admin account-creation) as environment variables.
+   Do NOT add `SUPABASE_DB_URL` (local migrations only).
 4. Deploy, then do step 6 above with the live URL.
 
 ## Project layout

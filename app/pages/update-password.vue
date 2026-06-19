@@ -4,6 +4,13 @@
 definePageMeta({ layout: 'auth' })
 const client = useSupabaseClient()
 const route = useRoute()
+const user = useSupabaseUser()
+const { profile, load } = useProfile()
+
+// Where to send the user once the password is set: their dashboard if they're
+// already signed in (changing password), else the sign-in page (reset flow).
+const nextLink = ref('/login')
+const nextLabel = ref('Go to sign in')
 
 const password = ref('')
 const confirm = ref('')
@@ -36,6 +43,12 @@ async function submit() {
     error.value = e.message
     return
   }
+  // If they were already signed in, send them back to their dashboard.
+  if (user.value) {
+    const p = await load(true)
+    nextLink.value = ROLE_HOME[p?.role ?? 'student'] ?? '/student'
+    nextLabel.value = 'Back to my dashboard'
+  }
   done.value = true
 }
 </script>
@@ -44,8 +57,8 @@ async function submit() {
   <div>
     <template v-if="done">
       <h1 class="mb-2 text-xl font-bold text-caleb-navy">Password updated</h1>
-      <p class="text-sm text-gray-600">You can now sign in with your new password.</p>
-      <NuxtLink to="/login" class="btn-primary mt-6 w-full">Go to sign in</NuxtLink>
+      <p class="text-sm text-gray-600">Your password has been changed.</p>
+      <NuxtLink :to="nextLink" class="btn-primary mt-6 w-full">{{ nextLabel }}</NuxtLink>
     </template>
 
     <template v-else>
