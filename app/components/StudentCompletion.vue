@@ -78,6 +78,8 @@ async function onStamped(e: Event) {
 
 const approved = computed(() => !!row.value?.academic_approved)
 const uploaded = computed(() => !!row.value?.stamped_report_url)
+
+onMounted(load)
 </script>
 
 <template>
