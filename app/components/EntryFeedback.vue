@@ -12,7 +12,7 @@ const props = withDefaults(
 )
 
 const client = useSupabaseClient<any>()
-const user = useSupabaseUser()
+const uid = useUid()
 const { profile } = useProfile()
 
 const targetCol = computed(() => (props.entryId != null ? 'entry_id' : 'summary_id'))
@@ -26,7 +26,7 @@ const busy = ref(false)
 const gradeInput = ref('')
 
 const myApproval = computed(() =>
-  approvals.value.find((a) => a.approver_id === user.value?.id)
+  approvals.value.find((a) => a.approver_id === uid.value)
 )
 
 async function load() {
@@ -55,7 +55,7 @@ async function postComment() {
   busy.value = true
   const { error } = await client.from('comments').insert({
     [targetCol.value]: targetId.value,
-    author_id: user.value!.id,
+    author_id: uid.value!,
     body: newComment.value.trim(),
   })
   busy.value = false
@@ -73,7 +73,7 @@ async function upsertMyApproval(patch: Record<string, any>) {
   } else {
     ;({ error } = await client.from('approvals').insert({
       [targetCol.value]: targetId.value,
-      approver_id: user.value!.id,
+      approver_id: uid.value!,
       role: profile.value?.role,
       ...patch,
     }))

@@ -3,7 +3,7 @@
 // next week unlocks only when all 5 days are written. Weeks are anchored to the
 // admin-set SIWES start date.
 const client = useSupabaseClient<any>()
-const user = useSupabaseUser()
+const uid = useUid()
 
 const assignment = ref<any | null>(null)
 const entries = ref<any[]>([])
@@ -50,9 +50,9 @@ function seedSelected() {
 async function load() {
   loading.value = true
   const [a, e, s] = await Promise.all([
-    client.from('assignments').select('start_date, created_at').eq('student_id', user.value!.id).maybeSingle(),
-    client.from('entries').select('*').eq('student_id', user.value!.id),
-    client.from('signoffs').select('*').eq('student_id', user.value!.id),
+    client.from('assignments').select('start_date, created_at').eq('student_id', uid.value!).maybeSingle(),
+    client.from('entries').select('*').eq('student_id', uid.value!),
+    client.from('signoffs').select('*').eq('student_id', uid.value!),
   ])
   assignment.value = a.data
   entries.value = e.data ?? []
@@ -94,7 +94,7 @@ async function saveDay(day: any) {
       if (error) throw error
     } else {
       const { error } = await client.from('entries').insert({
-        student_id: user.value!.id,
+        student_id: uid.value!,
         entry_date: day.date,
         week_number: selectedWeek.value!.week_number,
         content,

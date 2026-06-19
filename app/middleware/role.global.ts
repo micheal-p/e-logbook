@@ -9,7 +9,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (!user.value) return // not logged in -> supabase module handles it
 
   const { profile, load } = useProfile()
-  if (!profile.value || profile.value.id !== user.value.id) await load()
+  if (!profile.value || profile.value.id !== currentUid()) await load()
   const role = profile.value?.role
   if (!role) return
 

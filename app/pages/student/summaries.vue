@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const client = useSupabaseClient<any>()
-const user = useSupabaseUser()
+const uid = useUid()
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -21,7 +21,7 @@ async function load() {
   const { data } = await client
     .from('summaries')
     .select('*')
-    .eq('student_id', user.value!.id)
+    .eq('student_id', uid.value!)
     .order('year', { ascending: false })
     .order('month', { ascending: false })
   summaries.value = data ?? []
@@ -56,7 +56,7 @@ async function save() {
   if (editing.value?.id) {
     ;({ error: e } = await client.from('summaries').update(payload).eq('id', editing.value.id))
   } else {
-    ;({ error: e } = await client.from('summaries').insert({ ...payload, student_id: user.value!.id }))
+    ;({ error: e } = await client.from('summaries').insert({ ...payload, student_id: uid.value! }))
   }
   saving.value = false
   if (e) {

@@ -4,7 +4,7 @@ const props = defineProps<{ entry?: any | null }>()
 const emit = defineEmits<{ saved: []; cancel: [] }>()
 
 const client = useSupabaseClient<any>()
-const user = useSupabaseUser()
+const uid = useUid()
 
 const today = new Date().toISOString().slice(0, 10)
 const form = reactive({
@@ -62,7 +62,7 @@ async function save() {
     } else {
       ;({ error: e } = await client
         .from('entries')
-        .insert({ ...payload, student_id: user.value!.id }))
+        .insert({ ...payload, student_id: uid.value! }))
     }
     if (e) throw e
     emit('saved')

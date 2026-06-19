@@ -7,7 +7,7 @@ const props = defineProps<{
 }>()
 
 const client = useSupabaseClient<any>()
-const user = useSupabaseUser()
+const uid = useUid()
 const rows = ref<any[]>([])
 const loading = ref(true)
 
@@ -16,7 +16,7 @@ async function load() {
   const { data } = await client
     .from('assignments')
     .select('*, student:profiles!assignments_student_id_fkey(*)')
-    .eq(props.column, user.value!.id)
+    .eq(props.column, uid.value!)
   const list = (data ?? []).filter((r) => r.student)
 
   // Lightweight progress info per student.

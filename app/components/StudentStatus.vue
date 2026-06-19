@@ -3,7 +3,7 @@
 // supervisors are (or 'awaiting allocation'), the SIWES countdown, and a
 // delete-account action.
 const client = useSupabaseClient<any>()
-const user = useSupabaseUser()
+const uid = useUid()
 const { profile, load } = useProfile()
 
 const SIWES_WEEKS = 24 // 6 months
@@ -18,13 +18,13 @@ const deleting = ref(false)
 async function loadAll() {
   loading.value = true
   const [p, a] = await Promise.all([
-    client.from('profiles').select('*').eq('id', user.value!.id).single(),
+    client.from('profiles').select('*').eq('id', uid.value!).single(),
     client
       .from('assignments')
       .select(
         '*, supervisor:profiles!assignments_supervisor_id_fkey(full_name, email, department), company:profiles!assignments_company_supervisor_id_fkey(full_name, email, company_name)'
       )
-      .eq('student_id', user.value!.id)
+      .eq('student_id', uid.value!)
       .maybeSingle(),
   ])
   me.value = p.data
@@ -60,7 +60,7 @@ async function onPassport(e: Event) {
     const fd = new FormData()
     fd.append('file', f)
     const { url } = await $fetch<{ url: string }>('/api/upload', { method: 'POST', body: fd })
-    const { error } = await client.from('profiles').update({ avatar_url: url }).eq('id', user.value!.id)
+    const { error } = await client.from('profiles').update({ avatar_url: url }).eq('id', uid.value!)
     if (error) throw error
     await loadAll()
     await load(true) // refresh cached profile (header etc.)

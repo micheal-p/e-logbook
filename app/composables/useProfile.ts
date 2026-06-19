@@ -12,24 +12,28 @@ export interface Profile {
   created_at: string
 }
 
-export const useProfile = () => {
+// The current user's id. @nuxtjs/supabase v2 stores JWT *claims* in
+// useSupabaseUser(), where the user id is `sub` (not `id`).
+export const currentUid = (): string | undefined => {
   const user = useSupabaseUser()
+  return (user.value as any)?.sub ?? (user.value as any)?.id
+}
+export const useUid = () => computed<string | undefined>(() => currentUid())
+
+export const useProfile = () => {
   const client = useSupabaseClient()
   const profile = useState<Profile | null>('profile', () => null)
 
   const load = async (force = false) => {
-    if (!user.value) {
+    const uid = currentUid()
+    if (!uid) {
       profile.value = null
       return null
     }
-    if (!force && profile.value && profile.value.id === user.value.id) {
+    if (!force && profile.value && profile.value.id === uid) {
       return profile.value
     }
-    const { data, error } = await client
-      .from('profiles')
-      .select('*')
-      .eq('id', user.value.id)
-      .single()
+    const { data, error } = await client.from('profiles').select('*').eq('id', uid).single()
     if (!error) profile.value = data as Profile
     return profile.value
   }
