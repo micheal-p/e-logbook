@@ -55,5 +55,8 @@ const mailto = computed(
         <a class="btn-secondary" :href="mailto">Email it</a>
       </div>
     </section>
+
+    <!-- End of placement: print report, upload stamped copy, get certificate -->
+    <StudentCompletion />
   </div>
 </template>

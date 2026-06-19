@@ -249,16 +249,26 @@ onMounted(load)
           </div>
         </div>
 
-        <!-- Week sign-off (read-only, from the work supervisor link) -->
-        <div v-if="signoffByWeek[selectedWeek.week_number]" class="border-t border-gray-200 bg-green-50 p-4">
-          <p class="text-sm font-semibold text-green-800">
-            Work supervisor sign-off — {{ signoffByWeek[selectedWeek.week_number].signer_name }}
-            ({{ signoffByWeek[selectedWeek.week_number].signer_role }})
+        <!-- Week sign-off pane (read-only). Always shown so the student can see
+             the status; the signature comes from the work supervisor's link. -->
+        <div class="border-t border-gray-200 p-4" :class="signoffByWeek[selectedWeek.week_number] ? 'bg-green-50' : 'bg-gray-50'">
+          <p class="text-sm font-semibold" :class="signoffByWeek[selectedWeek.week_number] ? 'text-green-800' : 'text-gray-600'">
+            Work supervisor sign-off
           </p>
-          <p v-if="signoffByWeek[selectedWeek.week_number].comment" class="mt-1 text-sm text-gray-700">
-            "{{ signoffByWeek[selectedWeek.week_number].comment }}"
+          <template v-if="signoffByWeek[selectedWeek.week_number]">
+            <p class="mt-0.5 text-xs text-gray-500">
+              {{ signoffByWeek[selectedWeek.week_number].signer_name }}
+              ({{ signoffByWeek[selectedWeek.week_number].signer_role }})
+              · {{ fmt(signoffByWeek[selectedWeek.week_number].signed_at.slice(0, 10)) }}
+            </p>
+            <p v-if="signoffByWeek[selectedWeek.week_number].comment" class="mt-1 text-sm text-gray-700">
+              "{{ signoffByWeek[selectedWeek.week_number].comment }}"
+            </p>
+            <img :src="signoffByWeek[selectedWeek.week_number].signature" class="mt-2 h-16 rounded border bg-white" alt="signature" />
+          </template>
+          <p v-else class="mt-1 text-sm text-gray-500">
+            Awaiting sign-off — send your work supervisor the sign-off link once this week is complete.
           </p>
-          <img :src="signoffByWeek[selectedWeek.week_number].signature" class="mt-2 h-16 rounded border bg-white" alt="signature" />
         </div>
       </div>
 

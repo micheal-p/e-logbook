@@ -22,9 +22,7 @@ async function loadAll() {
     client.from('profiles').select('*').eq('id', uid.value!).single(),
     client
       .from('assignments')
-      .select(
-        '*, supervisor:profiles!assignments_supervisor_id_fkey(full_name, email, department), company:profiles!assignments_company_supervisor_id_fkey(full_name, email, company_name)'
-      )
+      .select('*, supervisor:profiles!assignments_supervisor_id_fkey(full_name, email, department)')
       .eq('student_id', uid.value!)
       .maybeSingle(),
     getSiwesStart(),
@@ -118,19 +116,18 @@ onMounted(loadAll)
 
     <!-- Supervisors -->
     <div class="card p-4">
-      <h3 class="text-sm font-semibold text-caleb-navy">Your supervisors</h3>
+      <h3 class="text-sm font-semibold text-caleb-navy">Your academic supervisor</h3>
       <template v-if="assignment">
         <p class="mt-2 text-sm">
           <span class="text-gray-500">Academic:</span>
           {{ assignment.supervisor?.full_name || 'Not assigned' }}
         </p>
-        <p class="mt-1 text-sm">
-          <span class="text-gray-500">Company:</span>
-          {{ assignment.company?.full_name || 'Not assigned' }}
+        <p v-if="assignment.supervisor?.department" class="mt-1 text-xs text-gray-400">
+          {{ assignment.supervisor.department }}
         </p>
       </template>
       <p v-else class="mt-2 text-sm text-amber-600">
-        Awaiting allocation — the admin hasn't assigned your supervisors yet.
+        Awaiting allocation — the admin hasn't assigned your supervisor yet.
       </p>
     </div>
 

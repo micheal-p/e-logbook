@@ -11,6 +11,7 @@ const ICONS: Record<string, string> = {
   approval: '✅',
   submission: '📥',
   schedule: '📅',
+  completion: '🎓',
 }
 
 function timeAgo(iso: string): string {
