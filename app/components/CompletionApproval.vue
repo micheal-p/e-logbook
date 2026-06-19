@@ -59,7 +59,7 @@ onMounted(load)
   <section v-if="!loading" class="card mb-6 overflow-hidden">
     <header class="border-b-2 border-caleb-navy bg-caleb-surface px-4 py-3">
       <h2 class="font-semibold text-caleb-navy">Final SIWES approval</h2>
-      <p class="text-xs text-gray-500">Review the stamped report, then sign once to complete the student's SIWES.</p>
+      <p class="text-xs text-gray-500">Review the ITF-stamped report, then sign once to complete the student's SIWES.</p>
     </header>
 
     <div class="p-4">
@@ -72,12 +72,12 @@ onMounted(load)
 
       <!-- Awaiting the student's stamped upload -->
       <p v-else-if="!uploaded" class="text-sm text-amber-600">
-        Waiting for the student to upload their company-stamped report. You can approve once it's uploaded.
+        Waiting for the student to upload their ITF-stamped report. You can approve once it's uploaded.
       </p>
 
       <!-- Ready to approve -->
       <template v-else>
-        <a :href="row.stamped_report_url" target="_blank" class="btn-outline mb-4 inline-block">View stamped report</a>
+        <a :href="row.stamped_report_url" target="_blank" class="btn-outline mb-4 inline-block">View ITF-stamped report</a>
 
         <label class="label">Comment (optional)</label>
         <textarea v-model="comment" rows="2" class="field mb-3" placeholder="Any remarks…" />

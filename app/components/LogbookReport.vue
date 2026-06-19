@@ -184,7 +184,7 @@ onMounted(load)
         <div class="grid grid-cols-2 gap-8">
           <div>
             <div class="h-24 rounded border border-dashed border-gray-300"></div>
-            <p class="mt-1 text-xs text-gray-500">Company stamp &amp; supervisor's signature</p>
+            <p class="mt-1 text-xs text-gray-500">ITF stamp &amp; company supervisor's signature</p>
           </div>
           <div>
             <div class="h-24 rounded border border-dashed border-gray-300"></div>
