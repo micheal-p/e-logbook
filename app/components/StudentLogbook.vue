@@ -5,7 +5,7 @@
 const props = withDefaults(
   defineProps<{
     studentId: string
-    can?: { comment?: boolean; approve?: boolean; grade?: boolean }
+    can?: { comment?: boolean; approve?: boolean }
     showSummaries?: boolean
   }>(),
   { can: () => ({}), showSummaries: true }

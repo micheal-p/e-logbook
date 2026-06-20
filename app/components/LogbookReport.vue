@@ -128,7 +128,7 @@ onMounted(load)
             <span class="text-gray-400">Approvals:</span>
             <template v-if="stampsFor(approvalsByEntry, 'entry_id', e.id).length">
               <span v-for="ap in stampsFor(approvalsByEntry, 'entry_id', e.id)" :key="ap.id" class="ml-1 inline-flex items-center gap-0.5 font-medium text-caleb-green">
-                <AppIcon name="check" :size="12" :stroke="2.5" /> {{ ap.approver?.full_name }}<template v-if="ap.grade"> (Grade: {{ ap.grade }})</template>;
+                <AppIcon name="check" :size="12" :stroke="2.5" /> {{ ap.approver?.full_name }};
               </span>
             </template>
             <span v-else class="ml-1 italic text-gray-400">none</span>
@@ -151,7 +151,7 @@ onMounted(load)
             <span class="text-gray-400">Approvals:</span>
             <template v-if="stampsFor(approvalsBySummary, 'summary_id', s.id).length">
               <span v-for="ap in stampsFor(approvalsBySummary, 'summary_id', s.id)" :key="ap.id" class="ml-1 inline-flex items-center gap-0.5 font-medium text-caleb-green">
-                <AppIcon name="check" :size="12" :stroke="2.5" /> {{ ap.approver?.full_name }}<template v-if="ap.grade"> (Grade: {{ ap.grade }})</template>;
+                <AppIcon name="check" :size="12" :stroke="2.5" /> {{ ap.approver?.full_name }};
               </span>
             </template>
             <span v-else class="ml-1 italic text-gray-400">none</span>

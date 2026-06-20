@@ -1,12 +1,12 @@
 <script setup lang="ts">
 // Renders the approval stamps + comment thread that sit under a daily entry
 // or a monthly summary, and (when allowed) the controls to comment / approve
-// / grade / apply the final stamp. Pass exactly one of entryId or summaryId.
+// / apply the final stamp. Pass exactly one of entryId or summaryId.
 const props = withDefaults(
   defineProps<{
     entryId?: number | null
     summaryId?: number | null
-    can?: { comment?: boolean; approve?: boolean; grade?: boolean }
+    can?: { comment?: boolean; approve?: boolean }
   }>(),
   { entryId: null, summaryId: null, can: () => ({}) }
 )
@@ -23,7 +23,6 @@ const approvals = ref<any[]>([])
 const loading = ref(true)
 const newComment = ref('')
 const busy = ref(false)
-const gradeInput = ref('')
 
 const myApproval = computed(() =>
   approvals.value.find((a) => a.approver_id === uid.value)
@@ -46,7 +45,6 @@ async function load() {
   ])
   comments.value = c.data ?? []
   approvals.value = a.data ?? []
-  gradeInput.value = myApproval.value?.grade ?? ''
   loading.value = false
 }
 
@@ -85,8 +83,6 @@ async function upsertMyApproval(patch: Record<string, any>) {
 
 const approve = () => upsertMyApproval({ stamped: true, stamped_at: new Date().toISOString() })
 const unapprove = () => upsertMyApproval({ stamped: false, stamped_at: null })
-const saveGrade = () =>
-  upsertMyApproval({ grade: gradeInput.value.trim() || null, stamped: true, stamped_at: new Date().toISOString() })
 
 onMounted(load)
 </script>
@@ -105,7 +101,6 @@ onMounted(load)
           :title="a.stamped_at"
         >
           <AppIcon name="check" :size="13" :stroke="2.5" /> {{ ROLE_LABELS[a.approver?.role] ?? a.role }}
-          <template v-if="a.grade"> · Grade: {{ a.grade }}</template>
         </span>
         <span v-if="!approvals.some((x) => x.stamped)" class="text-xs italic text-gray-400">
           Awaiting approval
@@ -122,7 +117,7 @@ onMounted(load)
       </ul>
 
       <!-- Actions -->
-      <div v-if="can.comment || can.approve || can.grade" class="mt-3 space-y-3">
+      <div v-if="can.comment || can.approve" class="mt-3 space-y-3">
         <div v-if="can.comment">
           <textarea
             v-model="newComment"
@@ -135,22 +130,13 @@ onMounted(load)
           </button>
         </div>
 
-        <div v-if="can.approve || can.grade" class="flex flex-wrap items-end gap-3">
-          <div v-if="can.grade">
-            <label class="label">Grade</label>
-            <input v-model="gradeInput" class="field w-28" placeholder="e.g. A / 85" />
-          </div>
-          <button v-if="can.grade" class="btn-primary" :disabled="busy" @click="saveGrade">
-            Save grade & approve
+        <div v-if="can.approve">
+          <button v-if="!myApproval?.stamped" class="btn-primary" :disabled="busy" @click="approve">
+            Approve
           </button>
-          <template v-else-if="can.approve">
-            <button v-if="!myApproval?.stamped" class="btn-primary" :disabled="busy" @click="approve">
-              Approve
-            </button>
-            <button v-else class="btn-outline inline-flex items-center gap-1.5" :disabled="busy" @click="unapprove">
-              <AppIcon name="check" :size="15" :stroke="2.5" /> Approved — undo
-            </button>
-          </template>
+          <button v-else class="btn-outline inline-flex items-center gap-1.5" :disabled="busy" @click="unapprove">
+            <AppIcon name="check" :size="15" :stroke="2.5" /> Approved — undo
+          </button>
         </div>
       </div>
     </template>

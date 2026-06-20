@@ -10,7 +10,7 @@ const stats = [
 
 const features = [
   { t: 'Daily task entries', d: 'Students log each day’s work — like the paper logbook, with optional diagrams and images.', icon: 'pencil' },
-  { t: 'Supervisor sign-offs', d: 'Company and academic supervisors review, comment, approve, and grade — no edits to student work.', icon: 'check-circle' },
+  { t: 'Supervisor sign-offs', d: 'Company and academic supervisors review, comment, and approve — no edits to student work.', icon: 'check-circle' },
   { t: 'Monthly summaries', d: 'A clear summary of each month of the placement, signed off by supervisors.', icon: 'calendar' },
   { t: 'Final IT stamp', d: 'The Super Admin applies the final institutional stamp on completed entries and summaries.', icon: 'building' },
 ]

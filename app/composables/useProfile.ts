@@ -50,11 +50,11 @@ export const ROLE_LABELS: Record<string, string> = {
   student: 'Student',
 }
 
-// Where each role lives.
+// Where each role lives. Company supervisors have no login area — they sign off
+// weekly via the student's public share link — so they're intentionally absent.
 export const ROLE_HOME: Record<string, string> = {
   super_admin: '/super-admin',
   admin: '/admin',
   supervisor: '/supervisor',
-  company_supervisor: '/company',
   student: '/student',
 }

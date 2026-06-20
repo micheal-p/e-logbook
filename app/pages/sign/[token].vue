@@ -29,9 +29,10 @@ const visibleWeeks = computed(() =>
 
 function weekState(w: any) {
   const complete = weekComplete(w, entriesByDate.value)
-  const past = w.friday <= todayIso()
   const signed = signoffByWeek.value[w.week_number]
-  return { complete, past, signed, signable: complete && past && !signed }
+  // Any completed, not-yet-signed week is signable — the supervisor can sign
+  // earlier weeks he skipped (back-dating), not just the latest one.
+  return { complete, signed, signable: complete && !signed }
 }
 
 // Per-week form state + signature pads.
@@ -184,10 +185,9 @@ useHead({ title: 'SIWES Sign-off — Caleb University' })
               </button>
             </div>
 
-            <p v-else-if="!weekState(w).complete" class="text-sm italic text-gray-400">
+            <p v-else class="text-sm italic text-gray-400">
               This week isn't complete yet — nothing to sign.
             </p>
-            <p v-else class="text-sm italic text-gray-400">This week hasn't finished yet.</p>
           </div>
         </div>
       </template>

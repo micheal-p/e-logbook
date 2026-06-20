@@ -3,7 +3,7 @@
 defineProps<{
   entry: any
   canEdit?: boolean
-  feedbackCan?: { comment?: boolean; approve?: boolean; grade?: boolean }
+  feedbackCan?: { comment?: boolean; approve?: boolean }
 }>()
 const emit = defineEmits<{ edit: [entry: any]; delete: [entry: any] }>()
 

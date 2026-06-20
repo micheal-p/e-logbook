@@ -9,8 +9,8 @@ const id = route.params.id as string
     <div class="mt-4">
       <!-- Final SIWES sign-off (once the student uploads their stamped report). -->
       <CompletionApproval :student-id="id" />
-      <!-- Academic supervisor: reads everything, comments, approves, and grades. -->
-      <StudentLogbook :student-id="id" :can="{ comment: true, approve: true, grade: true }" :show-summaries="true" />
+      <!-- Academic supervisor: reads everything, comments, and approves. -->
+      <StudentLogbook :student-id="id" :can="{ comment: true, approve: true }" :show-summaries="true" />
     </div>
   </div>
 </template>
