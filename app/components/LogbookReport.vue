@@ -101,7 +101,7 @@ onMounted(load)
       <section class="mt-6 flex gap-6">
         <img v-if="student?.avatar_url" :src="student.avatar_url" alt="passport" class="h-28 w-24 rounded border object-cover" />
         <div v-else class="flex h-28 w-24 items-center justify-center rounded border text-xs text-gray-400">No photo</div>
-        <dl class="grid flex-1 grid-cols-2 gap-x-6 gap-y-1 text-sm">
+        <dl class="grid flex-1 grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
           <div><dt class="text-xs uppercase text-gray-400">Name</dt><dd class="font-semibold">{{ student?.full_name || '—' }}</dd></div>
           <div><dt class="text-xs uppercase text-gray-400">Matric No</dt><dd>{{ student?.matric_no || '—' }}</dd></div>
           <div><dt class="text-xs uppercase text-gray-400">Department</dt><dd>{{ student?.department || '—' }}</dd></div>
@@ -181,7 +181,7 @@ onMounted(load)
       <!-- Company stamp + signatures (filled physically after printing) -->
       <section class="mt-10 break-inside-avoid">
         <h2 class="mb-3 border-b border-gray-300 pb-1 text-base font-bold text-caleb-navy">Endorsement</h2>
-        <div class="grid grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2">
           <div>
             <div class="h-24 rounded border border-dashed border-gray-300"></div>
             <p class="mt-1 text-xs text-gray-500">ITF stamp &amp; company supervisor's signature</p>

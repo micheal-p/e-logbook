@@ -71,18 +71,18 @@ onMounted(load)
           and has satisfied all the requirements of the programme.
         </p>
 
-        <div class="mt-12 flex items-end justify-around">
+        <div class="mt-12 flex flex-col items-center gap-8 sm:flex-row sm:items-end sm:justify-around sm:gap-0">
           <div class="text-center">
             <img v-if="completion.academic_signature" :src="completion.academic_signature" class="mx-auto h-16" alt="signature" />
             <div v-else class="h-16"></div>
-            <div class="mx-auto w-56 border-t border-gray-400 pt-1 text-sm">
+            <div class="mx-auto w-full max-w-[14rem] border-t border-gray-400 pt-1 text-sm sm:w-56">
               <p class="font-semibold">{{ supervisor || 'Academic Supervisor' }}</p>
               <p class="text-xs text-gray-500">Academic Supervisor</p>
             </div>
           </div>
           <div class="text-center">
             <p class="h-16 pt-10 text-sm font-semibold">{{ completion.approved_at ? fmt(completion.approved_at) : '' }}</p>
-            <div class="mx-auto w-56 border-t border-gray-400 pt-1 text-sm">
+            <div class="mx-auto w-full max-w-[14rem] border-t border-gray-400 pt-1 text-sm sm:w-56">
               <p class="text-xs text-gray-500">Date of approval</p>
             </div>
           </div>
