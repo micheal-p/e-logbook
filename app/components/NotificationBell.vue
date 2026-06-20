@@ -6,12 +6,12 @@ const root = ref<HTMLElement | null>(null)
 
 // Icon per notification type.
 const ICONS: Record<string, string> = {
-  signoff: '✍️',
-  assignment: '👤',
-  approval: '✅',
-  submission: '📥',
-  schedule: '📅',
-  completion: '🎓',
+  signoff: 'pencil',
+  assignment: 'user',
+  approval: 'check-circle',
+  submission: 'inbox',
+  schedule: 'calendar',
+  completion: 'academic-cap',
 }
 
 function timeAgo(iso: string): string {
@@ -90,7 +90,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
           :class="!n.read ? 'bg-caleb-surface/60' : ''"
           @click="onClick(n)"
         >
-          <span class="mt-0.5 text-base leading-none">{{ ICONS[n.type] || '🔔' }}</span>
+          <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-caleb-surface text-caleb-navy">
+            <AppIcon :name="ICONS[n.type] || 'bell'" :size="16" />
+          </span>
           <span class="min-w-0 flex-1">
             <span class="flex items-center gap-2">
               <span class="truncate text-sm font-semibold text-caleb-navy">{{ n.title }}</span>

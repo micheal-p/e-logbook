@@ -157,8 +157,8 @@ useHead({ title: 'SIWES Sign-off — Caleb University' })
           <!-- Sign-off area -->
           <div class="border-t border-gray-200 px-4 py-3">
             <div v-if="weekState(w).signed" class="rounded-lg bg-green-50 p-3">
-              <p class="text-sm font-semibold text-green-800">
-                ✓ Signed by {{ signoffByWeek[w.week_number].signer_name }}
+              <p class="flex items-center gap-1.5 text-sm font-semibold text-green-800">
+                <AppIcon name="check" :size="15" :stroke="2.5" /> Signed by {{ signoffByWeek[w.week_number].signer_name }}
                 <span class="font-normal text-gray-600">({{ signoffByWeek[w.week_number].signer_role }})</span>
               </p>
               <p v-if="signoffByWeek[w.week_number].comment" class="mt-1 text-sm text-gray-700">

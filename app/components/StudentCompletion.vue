@@ -94,7 +94,9 @@ onMounted(load)
     <!-- Locked until everything is filled -->
     <div v-else-if="!logbookComplete" class="p-6">
       <div class="flex items-start gap-3 rounded-lg bg-gray-50 p-4">
-        <span class="text-xl">🔒</span>
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-gray-400 ring-1 ring-gray-200">
+          <AppIcon name="lock" :size="18" />
+        </span>
         <div class="flex-1">
           <p class="font-medium text-caleb-navy">Complete your logbook to unlock this</p>
           <p class="mt-1 text-sm text-gray-500">
@@ -130,7 +132,8 @@ onMounted(load)
       <!-- Step 2: upload ITF-stamped -->
       <li class="flex items-start gap-3 p-4">
         <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" :class="uploaded ? 'bg-caleb-green' : 'bg-caleb-navy'">
-          {{ uploaded ? '✓' : '2' }}
+          <AppIcon v-if="uploaded" name="check" :size="14" :stroke="2.5" />
+          <template v-else>2</template>
         </span>
         <div class="flex-1">
           <p class="font-medium text-caleb-navy">Upload the ITF-stamped report</p>
@@ -148,7 +151,8 @@ onMounted(load)
       <!-- Step 3: academic approval -->
       <li class="flex items-start gap-3 p-4">
         <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" :class="approved ? 'bg-caleb-green' : 'bg-gray-300'">
-          {{ approved ? '✓' : '3' }}
+          <AppIcon v-if="approved" name="check" :size="14" :stroke="2.5" />
+          <template v-else>3</template>
         </span>
         <div class="flex-1">
           <p class="font-medium text-caleb-navy">Academic supervisor approval</p>

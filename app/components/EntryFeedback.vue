@@ -101,10 +101,10 @@ onMounted(load)
         <span
           v-for="a in approvals.filter((x) => x.stamped)"
           :key="a.id"
-          class="pill bg-green-100 text-green-800"
+          class="pill inline-flex items-center gap-1 bg-green-100 text-green-800"
           :title="a.stamped_at"
         >
-          ✓ {{ ROLE_LABELS[a.approver?.role] ?? a.role }}
+          <AppIcon name="check" :size="13" :stroke="2.5" /> {{ ROLE_LABELS[a.approver?.role] ?? a.role }}
           <template v-if="a.grade"> · Grade: {{ a.grade }}</template>
         </span>
         <span v-if="!approvals.some((x) => x.stamped)" class="text-xs italic text-gray-400">
@@ -147,8 +147,8 @@ onMounted(load)
             <button v-if="!myApproval?.stamped" class="btn-primary" :disabled="busy" @click="approve">
               Approve
             </button>
-            <button v-else class="btn-outline" :disabled="busy" @click="unapprove">
-              ✓ Approved — undo
+            <button v-else class="btn-outline inline-flex items-center gap-1.5" :disabled="busy" @click="unapprove">
+              <AppIcon name="check" :size="15" :stroke="2.5" /> Approved — undo
             </button>
           </template>
         </div>

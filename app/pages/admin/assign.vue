@@ -124,7 +124,7 @@ onMounted(load)
             <button class="btn-primary" :disabled="savingId === s.id" @click="save(s)">
               {{ savingId === s.id ? 'Saving…' : 'Save' }}
             </button>
-            <span v-if="savedId === s.id" class="text-sm text-green-700">Saved ✓</span>
+            <span v-if="savedId === s.id" class="inline-flex items-center gap-1 text-sm text-green-700"><AppIcon name="check" :size="14" :stroke="2.5" /> Saved</span>
           </div>
         </div>
       </div>

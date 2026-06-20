@@ -64,7 +64,9 @@ onMounted(loadSupervisors)
 
     <!-- Success card with credentials to hand over -->
     <div v-if="created" class="card mb-6 border-l-4 border-caleb-green p-4">
-      <p class="font-semibold text-caleb-navy">Account created ✓</p>
+      <p class="flex items-center gap-1.5 font-semibold text-caleb-navy">
+        <AppIcon name="check-circle" :size="17" class="text-caleb-green" /> Account created
+      </p>
       <p class="mt-1 text-sm text-gray-600">Share these details with the supervisor:</p>
       <div class="mt-2 rounded-lg bg-caleb-surface p-3 text-sm">
         <p><span class="text-gray-500">Email:</span> <strong>{{ created.email }}</strong></p>

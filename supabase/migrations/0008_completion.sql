@@ -90,7 +90,7 @@ begin
   if new.academic_approved and (tg_op = 'INSERT' or not coalesce(old.academic_approved, false)) then
     select full_name into who from public.profiles where id = new.academic_approver_id;
     perform public.add_notification(
-      new.student_id, 'completion', 'SIWES approved 🎓',
+      new.student_id, 'completion', 'SIWES approved',
       coalesce(who, 'Your supervisor') || ' approved your SIWES. You can now download your completion certificate.',
       '/student'
     );

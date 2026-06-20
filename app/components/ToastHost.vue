@@ -17,15 +17,15 @@ async function go(t: any) {
         class="pointer-events-auto overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
       >
         <div class="flex items-start gap-3 p-3">
-          <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-caleb-navy text-sm text-white">🔔</span>
+          <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-caleb-navy text-white">
+            <AppIcon name="bell" :size="15" />
+          </span>
           <button class="min-w-0 flex-1 text-left" @click="go(t)">
             <p class="truncate text-sm font-semibold text-caleb-navy">{{ t.title }}</p>
             <p v-if="t.body" class="text-xs text-gray-600">{{ t.body }}</p>
           </button>
           <button class="text-gray-400 hover:text-gray-600" aria-label="Dismiss" @click="dismiss(t.id)">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-width="2" d="M6 6l12 12M6 18L18 6" />
-            </svg>
+            <AppIcon name="close" :size="16" :stroke="2" />
           </button>
         </div>
         <div class="h-0.5 w-full bg-caleb-cyan-dark/70"></div>

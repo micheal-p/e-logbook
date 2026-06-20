@@ -65,7 +65,9 @@ onMounted(load)
     <div class="p-4">
       <!-- Already approved -->
       <div v-if="approved" class="rounded-lg bg-green-50 p-3">
-        <p class="text-sm font-semibold text-green-800">✓ Approved</p>
+        <p class="flex items-center gap-1.5 text-sm font-semibold text-green-800">
+          <AppIcon name="check-circle" :size="16" /> Approved
+        </p>
         <p class="text-xs text-gray-500">Signed off by {{ row.approver?.full_name || 'you' }}.</p>
         <img v-if="row.academic_signature" :src="row.academic_signature" class="mt-2 h-16 rounded border bg-white" alt="signature" />
       </div>

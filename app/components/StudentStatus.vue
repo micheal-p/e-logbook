@@ -139,7 +139,9 @@ onMounted(loadAll)
           {{ countdown.weeks }}w {{ countdown.days }}d
           <span class="text-sm font-normal text-gray-500">remaining</span>
         </p>
-        <p v-else class="mt-2 text-lg font-bold text-caleb-green">SIWES period complete 🎓</p>
+        <p v-else class="mt-2 flex items-center gap-1.5 text-lg font-bold text-caleb-green">
+          <AppIcon name="academic-cap" :size="20" /> SIWES period complete
+        </p>
         <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
           <div class="h-full bg-caleb-cyan" :style="{ width: countdown.pct + '%' }" />
         </div>

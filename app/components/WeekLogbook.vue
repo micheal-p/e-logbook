@@ -210,8 +210,8 @@ onMounted(load)
             <h2 class="font-semibold text-caleb-navy">Week {{ selectedWeek.week_number }}</h2>
             <p class="text-xs text-gray-500">{{ fmt(selectedWeek.monday) }} – {{ fmt(selectedWeek.friday) }}</p>
           </div>
-          <span v-if="signoffByWeek[selectedWeek.week_number]" class="pill bg-green-100 text-green-800">
-            ✓ Signed by {{ signoffByWeek[selectedWeek.week_number].signer_name }}
+          <span v-if="signoffByWeek[selectedWeek.week_number]" class="pill inline-flex items-center gap-1 bg-green-100 text-green-800">
+            <AppIcon name="check" :size="13" :stroke="2.5" /> Signed by {{ signoffByWeek[selectedWeek.week_number].signer_name }}
           </span>
         </header>
 

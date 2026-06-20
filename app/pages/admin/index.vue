@@ -93,7 +93,7 @@ onMounted(load)
             <button class="btn-primary" :disabled="savingStart" @click="saveStart">
               {{ savingStart ? 'Saving…' : 'Save' }}
             </button>
-            <span v-if="savedStart" class="text-sm text-green-700">Saved ✓</span>
+            <span v-if="savedStart" class="inline-flex items-center gap-1 text-sm text-green-700"><AppIcon name="check" :size="14" :stroke="2.5" /> Saved</span>
             <span v-if="!siwesStart" class="text-sm text-amber-600">Not set — students can't log yet.</span>
           </div>
         </div>

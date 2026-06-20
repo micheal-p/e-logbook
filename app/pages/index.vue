@@ -9,10 +9,10 @@ const stats = [
 ]
 
 const features = [
-  { t: 'Daily task entries', d: 'Students log each day’s work — like the paper logbook, with optional diagrams and images.', icon: '📝' },
-  { t: 'Supervisor sign-offs', d: 'Company and academic supervisors review, comment, approve, and grade — no edits to student work.', icon: '✅' },
-  { t: 'Monthly summaries', d: 'A clear summary of each month of the placement, signed off by supervisors.', icon: '📅' },
-  { t: 'Final IT stamp', d: 'The Super Admin applies the final institutional stamp on completed entries and summaries.', icon: '🏛️' },
+  { t: 'Daily task entries', d: 'Students log each day’s work — like the paper logbook, with optional diagrams and images.', icon: 'pencil' },
+  { t: 'Supervisor sign-offs', d: 'Company and academic supervisors review, comment, approve, and grade — no edits to student work.', icon: 'check-circle' },
+  { t: 'Monthly summaries', d: 'A clear summary of each month of the placement, signed off by supervisors.', icon: 'calendar' },
+  { t: 'Final IT stamp', d: 'The Super Admin applies the final institutional stamp on completed entries and summaries.', icon: 'building' },
 ]
 </script>
 
@@ -70,7 +70,9 @@ const features = [
       </div>
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div v-for="f in features" :key="f.t" class="card p-6">
-          <div class="text-3xl">{{ f.icon }}</div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-caleb-cyan/15 text-caleb-cyan-dark">
+            <AppIcon :name="f.icon" :size="24" />
+          </div>
           <h3 class="mt-3 font-semibold text-caleb-navy">{{ f.t }}</h3>
           <p class="mt-2 text-sm text-gray-600">{{ f.d }}</p>
         </div>
