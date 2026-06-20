@@ -7,7 +7,6 @@ const form = reactive({
   password: '',
   department: '',
   phone: '',
-  role: 'supervisor' as 'supervisor' | 'company_supervisor',
 })
 const creating = ref(false)
 const error = ref('')
@@ -27,7 +26,7 @@ async function loadSupervisors() {
   const { data } = await client
     .from('profiles')
     .select('full_name, email, role, department, phone')
-    .in('role', ['supervisor', 'company_supervisor'])
+    .eq('role', 'supervisor')
     .order('created_at', { ascending: false })
   supervisors.value = data ?? []
 }
@@ -40,12 +39,12 @@ async function submit() {
     return
   }
   if (!form.phone.trim()) {
-    error.value = 'A phone number is required — students use it to reach their supervisor.'
+    error.value = 'A phone number is required — students use it to reach their lecturer.'
     return
   }
   creating.value = true
   try {
-    await $fetch('/api/admin/create-user', { method: 'POST', body: { ...form } })
+    await $fetch('/api/admin/create-user', { method: 'POST', body: { ...form, role: 'supervisor' } })
     created.value = { email: form.email, password: form.password }
     Object.assign(form, { full_name: '', email: '', password: '', department: '', phone: '' })
     await loadSupervisors()
@@ -63,9 +62,9 @@ onMounted(loadSupervisors)
   <div>
     <h1 class="mb-1 text-2xl font-bold text-caleb-text">Create Accounts</h1>
     <p class="mb-6 text-sm text-gray-500">
-      Create login accounts for academic supervisors (lecturers) and company supervisors. Give them the
-      email and password — they can change it after first sign-in. Once created, assign them to students
-      on the <NuxtLink to="/admin/assign" class="underline">Assign Students</NuxtLink> page.
+      Create login accounts for lecturers (academic supervisors). Give them the email and password —
+      they can change it after first sign-in. (Company supervisors don't need accounts — students
+      send them a sign-off link instead.)
     </p>
 
     <!-- Success card with credentials to hand over -->
@@ -82,34 +81,13 @@ onMounted(loadSupervisors)
 
     <div class="card mb-8 p-4 sm:p-6">
       <form class="space-y-4" @submit.prevent="submit">
-        <!-- Role -->
-        <div>
-          <label class="label">Account type</label>
-          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <label
-              class="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm"
-              :class="form.role === 'supervisor' ? 'border-caleb-navy bg-caleb-surface font-semibold text-caleb-navy' : 'border-gray-300'"
-            >
-              <input v-model="form.role" type="radio" value="supervisor" class="accent-caleb-navy" />
-              Academic supervisor (lecturer)
-            </label>
-            <label
-              class="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm"
-              :class="form.role === 'company_supervisor' ? 'border-caleb-navy bg-caleb-surface font-semibold text-caleb-navy' : 'border-gray-300'"
-            >
-              <input v-model="form.role" type="radio" value="company_supervisor" class="accent-caleb-navy" />
-              Company supervisor
-            </label>
-          </div>
-        </div>
-
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label class="label">Full name</label>
             <input v-model="form.full_name" class="field" />
           </div>
           <div>
-            <label class="label">{{ form.role === 'company_supervisor' ? 'Company / organisation' : 'Department' }} (optional)</label>
+            <label class="label">Department (optional)</label>
             <input v-model="form.department" class="field" />
           </div>
         </div>
@@ -121,7 +99,7 @@ onMounted(loadSupervisors)
           <div>
             <label class="label">Phone number</label>
             <input v-model="form.phone" type="tel" class="field" placeholder="e.g. 0803 123 4567" autocomplete="off" />
-            <p class="mt-1 text-xs text-gray-400">Shown to students so they can reach this supervisor.</p>
+            <p class="mt-1 text-xs text-gray-400">Shown to students so they can reach this lecturer.</p>
           </div>
         </div>
         <div>
@@ -151,7 +129,6 @@ onMounted(loadSupervisors)
         <thead class="bg-caleb-surface text-left text-xs uppercase text-gray-500">
           <tr>
             <th class="px-4 py-2">Name</th>
-            <th class="px-4 py-2">Role</th>
             <th class="px-4 py-2">Email</th>
             <th class="px-4 py-2">Phone</th>
           </tr>
@@ -159,7 +136,6 @@ onMounted(loadSupervisors)
         <tbody class="divide-y divide-gray-100">
           <tr v-for="s in supervisors" :key="s.email">
             <td class="px-4 py-2 font-medium">{{ s.full_name || '—' }}</td>
-            <td class="px-4 py-2">{{ ROLE_LABELS[s.role] }}</td>
             <td class="px-4 py-2">{{ s.email }}</td>
             <td class="px-4 py-2">{{ s.phone || '—' }}</td>
           </tr>

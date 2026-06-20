@@ -10,11 +10,10 @@ const savingId = ref('')
 const savedId = ref('')
 
 // Editable row state per student, seeded from existing assignments.
-const rows = reactive<Record<string, { supervisor_id: string; company_supervisor_id: string }>>({})
+const rows = reactive<Record<string, { supervisor_id: string }>>({})
 
 const students = computed(() => profiles.value.filter((p) => p.role === 'student'))
 const academics = computed(() => profiles.value.filter((p) => p.role === 'supervisor'))
-const companies = computed(() => profiles.value.filter((p) => p.role === 'company_supervisor'))
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -46,10 +45,7 @@ function profileName(id: string | null | undefined) {
 function rowFor(id: string) {
   if (!rows[id]) {
     const a = assignmentFor(id)
-    rows[id] = {
-      supervisor_id: a?.supervisor_id || '',
-      company_supervisor_id: a?.company_supervisor_id || '',
-    }
+    rows[id] = { supervisor_id: a?.supervisor_id || '' }
   }
   return rows[id]
 }
@@ -70,12 +66,10 @@ async function save(s: any) {
   const r = rowFor(s.id)
   savingId.value = s.id
   savedId.value = ''
+  // Only the academic supervisor is assigned here; company supervisors sign off
+  // via the student's share link, so company_supervisor_id is left untouched.
   const { error } = await client.from('assignments').upsert(
-    {
-      student_id: s.id,
-      supervisor_id: r.supervisor_id || null,
-      company_supervisor_id: r.company_supervisor_id || null,
-    },
+    { student_id: s.id, supervisor_id: r.supervisor_id || null },
     { onConflict: 'student_id' }
   )
   savingId.value = ''
@@ -92,8 +86,8 @@ onMounted(load)
   <div>
     <h1 class="mb-1 text-2xl font-bold text-caleb-text">Assign Students</h1>
     <p class="mb-4 text-sm text-gray-500">
-      Set each student's academic (lecturer) and company supervisor. Filter by a lecturer to see who is
-      under them. The SIWES start date is set once for everyone on the Overview page.
+      Set each student's academic supervisor (lecturer). Filter by a lecturer to see who is under them.
+      The SIWES start date is set once for everyone on the Overview page.
     </p>
 
     <div v-if="loading" class="py-12 text-center text-sm text-gray-400">Loading…</div>
@@ -118,8 +112,8 @@ onMounted(load)
         Showing {{ filtered.length }} student{{ filtered.length === 1 ? '' : 's' }}.
       </p>
 
-      <p v-if="!academics.length && !companies.length" class="mb-4 text-sm text-amber-600">
-        No supervisors yet — create them on the <NuxtLink to="/admin/accounts" class="underline">Create Accounts</NuxtLink> page first.
+      <p v-if="!academics.length" class="mb-4 text-sm text-amber-600">
+        No lecturers yet — create them on the <NuxtLink to="/admin/accounts" class="underline">Create Accounts</NuxtLink> page first.
       </p>
 
       <div v-if="!filtered.length" class="card p-10 text-center text-gray-500">No matching students.</div>
@@ -131,29 +125,19 @@ onMounted(load)
               <p class="font-semibold text-caleb-navy">{{ s.full_name || s.email }}</p>
               <p class="text-xs text-gray-500">{{ s.matric_no || 'no matric' }} · {{ s.department || '—' }}</p>
               <p class="mt-1 text-xs text-gray-400">
-                Academic: <span class="text-gray-600">{{ profileName(assignmentFor(s.id)?.supervisor_id) || 'none' }}</span>
-                · Company: <span class="text-gray-600">{{ profileName(assignmentFor(s.id)?.company_supervisor_id) || 'none' }}</span>
+                Lecturer: <span class="text-gray-600">{{ profileName(assignmentFor(s.id)?.supervisor_id) || 'none' }}</span>
               </p>
             </div>
             <span v-if="!assignmentFor(s.id)?.supervisor_id" class="pill bg-amber-100 text-amber-800">Unassigned</span>
             <span v-else class="pill bg-green-100 text-green-800">Assigned</span>
           </div>
 
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label class="label">Academic supervisor</label>
-              <select v-model="rowFor(s.id).supervisor_id" class="field">
-                <option value="">— none —</option>
-                <option v-for="a in academics" :key="a.id" :value="a.id">{{ a.full_name || a.email }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="label">Company supervisor</label>
-              <select v-model="rowFor(s.id).company_supervisor_id" class="field">
-                <option value="">— none —</option>
-                <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.full_name || c.email }}</option>
-              </select>
-            </div>
+          <div>
+            <label class="label">Academic supervisor</label>
+            <select v-model="rowFor(s.id).supervisor_id" class="field sm:max-w-sm">
+              <option value="">— none —</option>
+              <option v-for="a in academics" :key="a.id" :value="a.id">{{ a.full_name || a.email }}</option>
+            </select>
           </div>
 
           <div class="mt-3 flex items-center gap-3">
