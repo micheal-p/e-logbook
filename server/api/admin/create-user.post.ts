@@ -29,6 +29,7 @@ export default defineEventHandler(async (event) => {
   const role = String(body?.role ?? '')
   const department = String(body?.department ?? '').trim()
   const company_name = String(body?.company_name ?? '').trim()
+  const phone = String(body?.phone ?? '').trim()
 
   if (!email || !password || password.length < 6 || !ALLOWED_ROLES.includes(role as any)) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid name, email, password (min 6) or role' })
@@ -54,6 +55,7 @@ export default defineEventHandler(async (event) => {
     role,
     department: department || null,
     company_name: company_name || null,
+    phone: phone || null,
   })
   if (e2) throw createError({ statusCode: 400, statusMessage: e2.message })
 

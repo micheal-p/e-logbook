@@ -22,7 +22,10 @@ async function loadAll() {
     client.from('profiles').select('*').eq('id', uid.value!).single(),
     client
       .from('assignments')
-      .select('*, supervisor:profiles!assignments_supervisor_id_fkey(full_name, email, department)')
+      .select(
+        '*, supervisor:profiles!assignments_supervisor_id_fkey(full_name, email, department, phone),' +
+          ' company:profiles!assignments_company_supervisor_id_fkey(full_name, email, department, phone)'
+      )
       .eq('student_id', uid.value!)
       .maybeSingle(),
     getSiwesStart(),
@@ -116,15 +119,34 @@ onMounted(loadAll)
 
     <!-- Supervisors -->
     <div class="card p-4">
-      <h3 class="text-sm font-semibold text-caleb-navy">Your academic supervisor</h3>
-      <template v-if="assignment">
-        <p class="mt-2 text-sm">
-          <span class="text-gray-500">Academic:</span>
-          {{ assignment.supervisor?.full_name || 'Not assigned' }}
-        </p>
-        <p v-if="assignment.supervisor?.department" class="mt-1 text-xs text-gray-400">
-          {{ assignment.supervisor.department }}
-        </p>
+      <h3 class="text-sm font-semibold text-caleb-navy">Your supervisors</h3>
+      <template v-if="assignment?.supervisor || assignment?.company">
+        <!-- Academic -->
+        <div v-if="assignment?.supervisor" class="mt-2">
+          <p class="text-xs uppercase tracking-wide text-gray-400">Academic supervisor</p>
+          <p class="text-sm font-medium text-caleb-navy">{{ assignment.supervisor.full_name || '—' }}</p>
+          <p v-if="assignment.supervisor.department" class="text-xs text-gray-400">{{ assignment.supervisor.department }}</p>
+          <a
+            v-if="assignment.supervisor.phone"
+            :href="`tel:${assignment.supervisor.phone}`"
+            class="mt-0.5 inline-flex items-center gap-1 text-xs text-caleb-cyan-dark hover:underline"
+          >
+            <AppIcon name="phone" :size="13" /> {{ assignment.supervisor.phone }}
+          </a>
+        </div>
+        <!-- Company -->
+        <div v-if="assignment?.company" class="mt-3 border-t border-gray-100 pt-2">
+          <p class="text-xs uppercase tracking-wide text-gray-400">Company supervisor</p>
+          <p class="text-sm font-medium text-caleb-navy">{{ assignment.company.full_name || '—' }}</p>
+          <p v-if="assignment.company.department" class="text-xs text-gray-400">{{ assignment.company.department }}</p>
+          <a
+            v-if="assignment.company.phone"
+            :href="`tel:${assignment.company.phone}`"
+            class="mt-0.5 inline-flex items-center gap-1 text-xs text-caleb-cyan-dark hover:underline"
+          >
+            <AppIcon name="phone" :size="13" /> {{ assignment.company.phone }}
+          </a>
+        </div>
       </template>
       <p v-else class="mt-2 text-sm text-amber-600">
         Awaiting allocation — the admin hasn't assigned your supervisor yet.

@@ -5,6 +5,7 @@ const profiles = ref<any[]>([])
 const assignments = ref<any[]>([])
 const loading = ref(true)
 const search = ref('')
+const supervisorFilter = ref('') // '', 'unassigned', or an academic supervisor id
 const savingId = ref('')
 const savedId = ref('')
 
@@ -17,17 +18,30 @@ const companies = computed(() => profiles.value.filter((p) => p.role === 'compan
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
-  if (!q) return students.value
-  return students.value.filter(
-    (s) =>
-      (s.matric_no || '').toLowerCase().includes(q) ||
-      (s.full_name || '').toLowerCase().includes(q) ||
-      (s.email || '').toLowerCase().includes(q)
-  )
+  let list = students.value
+  if (supervisorFilter.value === 'unassigned') {
+    list = list.filter((s) => !assignmentFor(s.id)?.supervisor_id)
+  } else if (supervisorFilter.value) {
+    list = list.filter((s) => assignmentFor(s.id)?.supervisor_id === supervisorFilter.value)
+  }
+  if (q) {
+    list = list.filter(
+      (s) =>
+        (s.matric_no || '').toLowerCase().includes(q) ||
+        (s.full_name || '').toLowerCase().includes(q) ||
+        (s.email || '').toLowerCase().includes(q)
+    )
+  }
+  return list
 })
 
 function assignmentFor(id: string) {
   return assignments.value.find((a) => a.student_id === id)
+}
+function profileName(id: string | null | undefined) {
+  if (!id) return null
+  const p = profiles.value.find((x) => x.id === id)
+  return p ? p.full_name || p.email : null
 }
 function rowFor(id: string) {
   if (!rows[id]) {
@@ -78,13 +92,31 @@ onMounted(load)
   <div>
     <h1 class="mb-1 text-2xl font-bold text-caleb-text">Assign Students</h1>
     <p class="mb-4 text-sm text-gray-500">
-      Search a student by matric number or name, then set their academic supervisor. The SIWES start date is set once for everyone on the Overview page.
+      Set each student's academic (lecturer) and company supervisor. Filter by a lecturer to see who is
+      under them. The SIWES start date is set once for everyone on the Overview page.
     </p>
 
     <div v-if="loading" class="py-12 text-center text-sm text-gray-400">Loading…</div>
 
     <template v-else>
-      <input v-model="search" class="field mb-4 max-w-sm" placeholder="Filter by matric number or name…" />
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div class="sm:max-w-sm sm:flex-1">
+          <label class="label">Search</label>
+          <input v-model="search" class="field" placeholder="Matric number, name or email…" />
+        </div>
+        <div class="sm:max-w-xs sm:flex-1">
+          <label class="label">Filter by academic supervisor</label>
+          <select v-model="supervisorFilter" class="field">
+            <option value="">All students</option>
+            <option value="unassigned">Unassigned (no lecturer)</option>
+            <option v-for="a in academics" :key="a.id" :value="a.id">{{ a.full_name || a.email }}</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="mb-3 text-xs text-gray-400">
+        Showing {{ filtered.length }} student{{ filtered.length === 1 ? '' : 's' }}.
+      </p>
 
       <p v-if="!academics.length && !companies.length" class="mb-4 text-sm text-amber-600">
         No supervisors yet — create them on the <NuxtLink to="/admin/accounts" class="underline">Create Accounts</NuxtLink> page first.
@@ -98,8 +130,12 @@ onMounted(load)
             <div>
               <p class="font-semibold text-caleb-navy">{{ s.full_name || s.email }}</p>
               <p class="text-xs text-gray-500">{{ s.matric_no || 'no matric' }} · {{ s.department || '—' }}</p>
+              <p class="mt-1 text-xs text-gray-400">
+                Academic: <span class="text-gray-600">{{ profileName(assignmentFor(s.id)?.supervisor_id) || 'none' }}</span>
+                · Company: <span class="text-gray-600">{{ profileName(assignmentFor(s.id)?.company_supervisor_id) || 'none' }}</span>
+              </p>
             </div>
-            <span v-if="!assignmentFor(s.id)" class="pill bg-amber-100 text-amber-800">Unassigned</span>
+            <span v-if="!assignmentFor(s.id)?.supervisor_id" class="pill bg-amber-100 text-amber-800">Unassigned</span>
             <span v-else class="pill bg-green-100 text-green-800">Assigned</span>
           </div>
 
