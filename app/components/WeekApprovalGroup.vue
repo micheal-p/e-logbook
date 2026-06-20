@@ -18,6 +18,7 @@ const { profile } = useProfile()
 // My approval row per entry id (whether stamped or not).
 const myByEntry = ref<Record<number, any>>({})
 const busy = ref(false)
+const open = ref(false) // weeks start collapsed — click the header to read the days
 const cardKey = ref(0) // bumped to remount EntryCards so their stamps refresh
 
 const entryIds = computed(() => props.entries.map((e) => e.id))
@@ -94,13 +95,21 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="rounded-xl border border-gray-200">
-    <!-- Week header with the single week-level approval -->
-    <header class="flex flex-wrap items-center justify-between gap-3 rounded-t-xl border-b-2 border-caleb-navy bg-caleb-surface px-4 py-3">
-      <div>
-        <h2 class="font-bold text-caleb-navy">{{ weekNumber ? `Week ${weekNumber}` : 'Unscheduled' }}</h2>
-        <p class="text-xs text-gray-500">{{ entries.length }} day{{ entries.length === 1 ? '' : 's' }} logged</p>
-      </div>
+  <section class="overflow-hidden rounded-xl border border-gray-200">
+    <!-- Week header: click anywhere to expand the days; or just approve. -->
+    <header
+      class="flex flex-wrap items-center justify-between gap-3 bg-caleb-surface px-4 py-3"
+      :class="open ? 'border-b-2 border-caleb-navy' : ''"
+    >
+      <button class="flex flex-1 items-center gap-3 text-left" @click="open = !open">
+        <AppIcon name="chevron-right" :size="18" class="shrink-0 text-gray-400 transition-transform" :class="open ? 'rotate-90' : ''" />
+        <span>
+          <span class="block font-bold text-caleb-navy">{{ weekNumber ? `Week ${weekNumber}` : 'Unscheduled' }}</span>
+          <span class="block text-xs text-gray-500">
+            {{ entries.length }} day{{ entries.length === 1 ? '' : 's' }} logged · {{ open ? 'click to collapse' : 'click to view' }}
+          </span>
+        </span>
+      </button>
       <div class="flex items-center gap-2">
         <span v-if="weekApproved" class="pill inline-flex items-center gap-1 bg-green-100 text-green-800">
           <AppIcon name="check" :size="13" :stroke="2.5" /> Approved
@@ -119,7 +128,7 @@ onMounted(load)
     </header>
 
     <!-- Days in the week (read-only; comments allowed, no per-day approve) -->
-    <div :key="cardKey" class="space-y-6 p-4">
+    <div v-show="open" :key="cardKey" class="space-y-6 p-4">
       <EntryCard
         v-for="e in entries"
         :key="e.id"
