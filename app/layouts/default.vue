@@ -61,10 +61,10 @@ async function signOut() {
           <NuxtLink to="/update-password" class="hidden text-sm text-caleb-cyan-dark hover:underline sm:inline">
             Change password
           </NuxtLink>
-          <button class="btn-outline" @click="signOut">Sign out</button>
+          <button class="btn-outline hidden sm:inline-flex" @click="signOut">Sign out</button>
           <button
             class="rounded-lg border border-gray-300 p-2 sm:hidden"
-            aria-label="Menu"
+            :aria-label="open ? 'Close menu' : 'Menu'"
             @click="open = !open"
           >
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,6 +90,25 @@ async function signOut() {
               >
                 {{ l.label }}
               </NuxtLink>
+            </li>
+
+            <!-- Settings + session: in the top bar on desktop, in this menu on mobile -->
+            <li class="mt-1 border-t border-gray-200 pt-1 sm:hidden">
+              <NuxtLink
+                to="/update-password"
+                class="block rounded-lg px-3 py-2 text-sm font-medium text-caleb-text hover:bg-white"
+                @click="open = false"
+              >
+                Change password
+              </NuxtLink>
+            </li>
+            <li class="sm:hidden">
+              <button
+                class="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-white"
+                @click="signOut"
+              >
+                Sign out
+              </button>
             </li>
           </ul>
         </div>

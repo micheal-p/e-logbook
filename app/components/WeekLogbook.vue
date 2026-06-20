@@ -48,15 +48,57 @@ const currentMonthComplete = computed(() =>
   currentMonth.value ? monthComplete(currentMonth.value, entriesByDate.value) : false
 )
 
-// First incomplete week is the active one; everything after it is locked.
+// --- Monthly-summary step helpers -----------------------------------------
+// The monthly summary is a real step in the sequence: after a 4-week block is
+// full, the student writes its summary before the next month's weeks unlock.
+const monthSaved = (period: number) => !!summaryByPeriod.value[period]
+const monthBlockComplete = (period: number) => {
+  const mo = months.value[period - 1]
+  return mo ? monthComplete(mo, entriesByDate.value) : false
+}
+function monthState(period: number) {
+  const s = summaryByPeriod.value[period]
+  if (s && (s.status === 'submitted' || s.status === 'approved')) return 'submitted'
+  if (s) return 'draft'
+  if (monthBlockComplete(period)) return 'ready' // four weeks done, summary due
+  return 'locked'
+}
+function monthMarkerClass(period: number) {
+  const active = currentMonth.value?.period === period
+  const ring = active ? ' ring-2 ring-caleb-navy' : ''
+  switch (monthState(period)) {
+    case 'submitted': return 'bg-green-100 text-green-800 hover:bg-green-200' + ring
+    case 'draft': return 'bg-amber-100 text-amber-800 hover:bg-amber-200' + ring
+    case 'ready': return 'bg-caleb-cyan/20 text-caleb-cyan-dark hover:bg-caleb-cyan/30' + ring
+    default: return 'cursor-not-allowed bg-gray-100 text-gray-300'
+  }
+}
+
+// First incomplete week is the active one — but a finished 4-week block pauses
+// on its summary (until saved) instead of racing ahead to the next week.
 const activeIdx = computed(() => {
   for (let i = 0; i < weeks.value.length; i++) {
-    if (!weekComplete(weeks.value[i], entriesByDate.value)) return i
+    const w = weeks.value[i]
+    if (!weekComplete(w, entriesByDate.value)) return i
+    if (w.week_number % WEEKS_PER_MONTH === 0 && !monthSaved(w.week_number / WEEKS_PER_MONTH)) return i
   }
   return Math.max(0, weeks.value.length - 1)
 })
 const selectedWeek = computed(() => weeks.value[selectedIdx.value] ?? null)
-const isUnlocked = (i: number) => i <= activeIdx.value
+// Unlocked if it's the active step or earlier, or already filled in — so the
+// summary gate never re-locks weeks the student has already completed.
+const isUnlocked = (i: number) =>
+  i <= activeIdx.value || weekComplete(weeks.value[i], entriesByDate.value)
+
+// Jump to a month's summary: select its last week (which renders the summary)
+// and scroll the summary card into view.
+const summaryEl = ref<HTMLElement | null>(null)
+function openMonth(mo: any) {
+  if (monthState(mo.period) === 'locked') return
+  selectedIdx.value = mo.week_to - 1
+  seedSelected()
+  nextTick(() => summaryEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+}
 
 function seedSelected() {
   if (!selectedWeek.value) return
@@ -87,6 +129,12 @@ async function load() {
   await nextTick()
   selectedIdx.value = activeIdx.value
   seedSelected()
+  // If we've landed on a finished block whose summary is still due, nudge the
+  // student down to it so the monthly report isn't missed.
+  if (currentMonth.value && currentMonthComplete.value && !monthSaved(currentMonth.value.period)) {
+    await nextTick()
+    summaryEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 }
 
 async function saveSummary(mo: any) {
@@ -187,21 +235,43 @@ onMounted(load)
     </div>
 
     <template v-else>
-      <!-- Week selector -->
-      <div class="mb-4 flex flex-wrap gap-2">
-        <button
-          v-for="(w, i) in weeks"
-          :key="w.week_number"
-          class="h-9 w-9 rounded-lg text-sm font-medium"
-          :class="[
-            i === selectedIdx ? 'bg-caleb-navy text-white' : isUnlocked(i) ? 'bg-white text-caleb-navy border border-gray-300 hover:bg-caleb-surface' : 'cursor-not-allowed bg-gray-100 text-gray-300',
-          ]"
-          :disabled="!isUnlocked(i)"
-          :title="isUnlocked(i) ? 'Week ' + w.week_number : 'Complete the current week to unlock'"
-          @click="pickWeek(i)"
+      <!-- Week + monthly-summary selector, grouped one row per month -->
+      <div class="mb-4 space-y-2">
+        <div
+          v-for="mo in months"
+          :key="mo.period"
+          class="flex flex-wrap items-center gap-1.5 rounded-xl border border-gray-200 bg-white p-2 sm:gap-2 sm:p-2.5"
         >
-          {{ w.week_number }}
-        </button>
+          <span class="mr-1 hidden text-xs font-semibold uppercase tracking-wide text-gray-400 sm:inline">
+            Month {{ mo.period }}
+          </span>
+          <button
+            v-for="w in mo.weeks"
+            :key="w.week_number"
+            class="h-9 w-9 shrink-0 rounded-lg text-sm font-medium transition"
+            :class="[
+              w.week_number - 1 === selectedIdx ? 'bg-caleb-navy text-white' : isUnlocked(w.week_number - 1) ? 'border border-gray-300 bg-white text-caleb-navy hover:bg-caleb-surface' : 'cursor-not-allowed bg-gray-100 text-gray-300',
+            ]"
+            :disabled="!isUnlocked(w.week_number - 1)"
+            :title="isUnlocked(w.week_number - 1) ? 'Week ' + w.week_number : 'Complete the current week to unlock'"
+            @click="pickWeek(w.week_number - 1)"
+          >
+            {{ w.week_number }}
+          </button>
+
+          <!-- Monthly summary marker -->
+          <button
+            class="ml-auto inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold transition sm:px-3"
+            :class="monthMarkerClass(mo.period)"
+            :disabled="monthState(mo.period) === 'locked'"
+            :title="monthState(mo.period) === 'locked' ? 'Finish all four weeks to write this summary' : 'Month ' + mo.period + ' summary'"
+            @click="openMonth(mo)"
+          >
+            <AppIcon :name="monthState(mo.period) === 'submitted' ? 'check-circle' : 'document'" :size="15" />
+            <span class="hidden sm:inline">Month {{ mo.period }} summary</span>
+            <span class="sm:hidden">M{{ mo.period }}</span>
+          </button>
+        </div>
       </div>
 
       <div v-if="selectedWeek" class="card overflow-hidden">
@@ -273,7 +343,7 @@ onMounted(load)
       </div>
 
       <!-- Monthly summary — appears in place after each 4-week block -->
-      <section v-if="currentMonth" class="card mt-4 overflow-hidden border-2 border-caleb-cyan-dark">
+      <section v-if="currentMonth" ref="summaryEl" class="card mt-4 scroll-mt-24 overflow-hidden border-2 border-caleb-cyan-dark">
         <header class="flex flex-wrap items-center justify-between gap-2 border-b border-caleb-cyan-dark/30 bg-caleb-cyan-dark/10 px-4 py-3">
           <div>
             <h2 class="font-semibold text-caleb-navy">Month {{ currentMonth.period }} Summary</h2>
@@ -316,7 +386,8 @@ onMounted(load)
       </section>
 
       <p class="mt-3 text-xs text-gray-400">
-        Fill in all five days to unlock the next week. A monthly summary appears after every 4 weeks.
+        Fill in all five days to unlock the next week. After each 4-week block, write that month's
+        summary — it unlocks the following month.
       </p>
     </template>
   </div>

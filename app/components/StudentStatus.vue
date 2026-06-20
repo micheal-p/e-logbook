@@ -90,7 +90,7 @@ onMounted(loadAll)
 </script>
 
 <template>
-  <div v-if="!loading" class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+  <div v-if="!loading" class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <!-- Passport + identity -->
     <div class="card flex items-center gap-4 p-4">
       <div class="relative">
@@ -155,7 +155,7 @@ onMounted(loadAll)
     </div>
 
     <!-- Danger zone -->
-    <div class="lg:col-span-3">
+    <div class="sm:col-span-2 lg:col-span-3">
       <button class="text-sm text-red-600 hover:underline" :disabled="deleting" @click="deleteAccount">
         {{ deleting ? 'Deleting…' : 'Delete my account' }}
       </button>

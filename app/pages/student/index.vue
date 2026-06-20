@@ -34,8 +34,16 @@ const mailto = computed(
 
     <!-- Primary task: the weekly logbook -->
     <section>
-      <h1 class="mb-1 text-2xl font-bold text-caleb-text">My Logbook</h1>
-      <p class="mb-4 text-sm text-gray-500">Fill in each weekday. Complete a week to unlock the next.</p>
+      <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-2xl font-bold text-caleb-text">My Logbook</h1>
+        <NuxtLink to="/student/report" target="_blank" class="btn-outline">
+          <AppIcon name="document" :size="16" /> View / download (PDF)
+        </NuxtLink>
+      </div>
+      <p class="mb-4 text-sm text-gray-500">
+        Fill in each weekday. Complete a week to unlock the next. You can view or download a PDF copy of
+        everything you've filled in at any time.
+      </p>
       <WeekLogbook />
     </section>
 
