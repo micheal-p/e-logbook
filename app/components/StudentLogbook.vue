@@ -23,6 +23,20 @@ const summaries = ref<any[]>([])
 const loading = ref(true)
 const tab = ref<'entries' | 'summaries'>('entries')
 
+// Group entries into weeks (newest week first, newest day first within a week)
+// so the supervisor approves a whole week in one action instead of day by day.
+const weekGroups = computed(() => {
+  const map = new Map<number, any[]>()
+  for (const e of entries.value) {
+    const wk = e.week_number ?? 0
+    if (!map.has(wk)) map.set(wk, [])
+    map.get(wk)!.push(e)
+  }
+  return [...map.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([weekNumber, items]) => ({ weekNumber, entries: items }))
+})
+
 async function load() {
   loading.value = true
   const [p, e, s] = await Promise.all([
@@ -82,7 +96,13 @@ onMounted(load)
       <div v-show="tab === 'entries'">
         <div v-if="!entries.length" class="card p-10 text-center text-gray-500">No entries yet.</div>
         <div v-else class="space-y-6">
-          <EntryCard v-for="e in entries" :key="e.id" :entry="e" :feedback-can="can" />
+          <WeekApprovalGroup
+            v-for="g in weekGroups"
+            :key="g.weekNumber"
+            :week-number="g.weekNumber"
+            :entries="g.entries"
+            :can="can"
+          />
         </div>
       </div>
 

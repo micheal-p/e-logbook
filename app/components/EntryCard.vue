@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // One daily entry rendered like a logbook page.
-defineProps<{
+const props = defineProps<{
   entry: any
   canEdit?: boolean
   feedbackCan?: { comment?: boolean; approve?: boolean }
@@ -15,6 +15,20 @@ function fmtDate(d: string) {
     year: 'numeric',
   })
 }
+
+// When was this actually written vs. the day it logs? A big gap means the
+// student backfilled — useful for catching last-minute / batch filling.
+// Shown only to supervisors/admins (the read-only view), never the student.
+const fillInfo = computed(() => {
+  if (!props.entry.created_at) return null
+  const filled = new Date(props.entry.created_at)
+  const due = new Date(props.entry.entry_date + 'T00:00:00')
+  const lagDays = Math.floor((filled.getTime() - due.getTime()) / 86400000)
+  const stamp = filled.toLocaleString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  })
+  return { stamp, lagDays, late: lagDays >= 2 }
+})
 </script>
 
 <template>
@@ -24,6 +38,11 @@ function fmtDate(d: string) {
       <div>
         <h3 class="font-semibold text-caleb-text">{{ fmtDate(entry.entry_date) }}</h3>
         <p v-if="entry.week_number" class="text-xs text-gray-500">Week {{ entry.week_number }}</p>
+        <!-- Fill timestamp / lateness — supervisors & admins only -->
+        <p v-if="!canEdit && fillInfo" class="mt-0.5 text-xs" :class="fillInfo.late ? 'font-medium text-amber-600' : 'text-gray-400'">
+          <template v-if="fillInfo.late">⚠ Filled {{ fillInfo.lagDays }} days late · </template>
+          Logged {{ fillInfo.stamp }}
+        </p>
       </div>
       <div class="flex items-center gap-2">
         <StatusPill :status="entry.status" />
