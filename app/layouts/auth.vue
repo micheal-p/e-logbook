@@ -1,10 +1,23 @@
+<script setup lang="ts">
+const uid = useUid()
+const { profile, load } = useProfile()
+await load() // populate the role when signed in (e.g. changing password)
+
+// Where the close (X) goes: signed-in users (changing their password) return to
+// their dashboard; the public sign-in / sign-up / reset flows go to the landing page.
+const backTo = computed(() =>
+  uid.value && profile.value ? ROLE_HOME[profile.value.role] ?? '/' : '/'
+)
+const backLabel = computed(() => (backTo.value === '/' ? 'Back to home' : 'Back to dashboard'))
+</script>
+
 <template>
   <div class="relative flex min-h-screen flex-col items-center justify-center bg-caleb-surface px-4 py-10">
-    <!-- Close → back to the landing page -->
+    <!-- Close → landing page when signed out, dashboard when signed in -->
     <NuxtLink
-      to="/"
-      aria-label="Back to home"
-      title="Back to home"
+      :to="backTo"
+      :aria-label="backLabel"
+      :title="backLabel"
       class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:bg-gray-50 hover:text-caleb-navy sm:right-6 sm:top-6"
     >
       <AppIcon name="close" :size="20" :stroke="2" />
