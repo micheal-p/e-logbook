@@ -24,7 +24,10 @@ onBeforeUnmount(() => notifications.unsubscribe())
 
 // Nav links per role.
 const NAV: Record<string, { to: string; label: string }[]> = {
-  student: [{ to: '/student', label: 'My Logbook' }],
+  student: [
+    { to: '/student', label: 'My Logbook' },
+    { to: '/student/profile', label: 'My Profile' },
+  ],
   supervisor: [{ to: '/supervisor', label: 'My Students' }],
   admin: [
     { to: '/admin', label: 'Overview' },

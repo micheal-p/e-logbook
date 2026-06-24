@@ -21,7 +21,7 @@
     @apply btn bg-caleb-navy text-white hover:bg-caleb-navy-dark focus:ring-caleb-navy;
   }
   .btn-secondary {
-    @apply btn bg-caleb-cyan text-caleb-navy hover:brightness-95 focus:ring-caleb-cyan;
+    @apply btn bg-caleb-cyan-dark text-white hover:brightness-110 focus:ring-caleb-cyan-dark;
   }
   .btn-outline {
     @apply btn border border-gray-300 bg-white text-caleb-navy hover:bg-gray-50 focus:ring-caleb-cyan;
@@ -49,15 +49,26 @@
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
 
-  /* A logbook page: ruled lines like real paper */
+  /* A logbook page: faint green ruled lines like the real ITF logbook paper */
   .logbook-lines {
     background-image: repeating-linear-gradient(
       to bottom,
       transparent,
       transparent 1.85rem,
-      #d4e6f3 1.85rem,
-      #d4e6f3 calc(1.85rem + 1px)
+      #cfe3d2 1.85rem,
+      #cfe3d2 calc(1.85rem + 1px)
     );
     line-height: 1.9rem;
+  }
+
+  /* Logbook grid: boxed table cells, like the printed manual logbook */
+  .logbook-table {
+    @apply w-full border-collapse text-sm;
+  }
+  .logbook-table th {
+    @apply border border-caleb-navy/20 bg-caleb-surface px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-caleb-navy;
+  }
+  .logbook-table td {
+    @apply border border-gray-200 px-3 py-3 align-top;
   }
 }

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 // Top-of-dashboard panel for the student: passport photo, who their
-// supervisors are (or 'awaiting allocation'), the SIWES countdown, and a
-// delete-account action.
+// supervisors are (or 'awaiting allocation'), and the SIWES countdown.
+// Editing details + deleting the account now live on /student/profile.
 const client = useSupabaseClient<any>()
 const uid = useUid()
-const { profile, load } = useProfile()
 
 const SIWES_WEEKS = 24 // 6 months
 const SIWES_DAYS = SIWES_WEEKS * 7
@@ -13,8 +12,6 @@ const me = ref<any | null>(null)
 const assignment = ref<any | null>(null)
 const siwesStart = ref<string | null>(null)
 const loading = ref(true)
-const uploading = ref(false)
-const deleting = ref(false)
 
 async function loadAll() {
   loading.value = true
@@ -50,42 +47,6 @@ const countdown = computed(() => {
   }
 })
 
-// --- Passport photo --------------------------------------------------------
-async function onPassport(e: Event) {
-  const f = (e.target as HTMLInputElement).files?.[0]
-  if (!f) return
-  uploading.value = true
-  try {
-    const fd = new FormData()
-    fd.append('file', f)
-    const { url } = await $fetch<{ url: string }>('/api/upload', { method: 'POST', body: fd })
-    const { error } = await client.from('profiles').update({ avatar_url: url }).eq('id', uid.value!)
-    if (error) throw error
-    await loadAll()
-    await load(true) // refresh cached profile (header etc.)
-  } catch (err: any) {
-    alert(err?.data?.statusMessage || err?.message || 'Upload failed')
-  } finally {
-    uploading.value = false
-  }
-}
-
-// --- Delete account --------------------------------------------------------
-async function deleteAccount() {
-  if (!confirm('Delete your account? This permanently removes all your entries and summaries.')) return
-  if (!confirm('This cannot be undone. Are you absolutely sure?')) return
-  deleting.value = true
-  try {
-    await $fetch('/api/account/delete', { method: 'POST' })
-    await client.auth.signOut()
-    profile.value = null
-    await navigateTo('/')
-  } catch (err: any) {
-    deleting.value = false
-    alert(err?.data?.statusMessage || err?.message || 'Could not delete account')
-  }
-}
-
 onMounted(loadAll)
 </script>
 
@@ -107,10 +68,9 @@ onMounted(loadAll)
       <div class="min-w-0">
         <p class="truncate font-semibold text-caleb-navy">{{ me?.full_name || 'Student' }}</p>
         <p class="truncate text-xs text-gray-500">{{ me?.matric_no || '—' }}</p>
-        <label class="mt-2 inline-block cursor-pointer text-sm text-caleb-cyan-dark hover:underline">
-          {{ uploading ? 'Uploading…' : me?.avatar_url ? 'Change passport' : 'Upload passport' }}
-          <input type="file" accept="image/*" class="hidden" :disabled="uploading" @change="onPassport" />
-        </label>
+        <NuxtLink to="/student/profile" class="mt-2 inline-flex items-center gap-1 text-sm text-caleb-cyan-dark hover:underline">
+          <AppIcon name="user" :size="14" /> View / edit profile
+        </NuxtLink>
       </div>
     </div>
 
@@ -154,13 +114,6 @@ onMounted(loadAll)
       <p v-else class="mt-2 text-sm text-gray-500">
         Your start date is set when the admin allocates you.
       </p>
-    </div>
-
-    <!-- Danger zone -->
-    <div class="sm:col-span-2 lg:col-span-3">
-      <button class="text-sm text-red-600 hover:underline" :disabled="deleting" @click="deleteAccount">
-        {{ deleting ? 'Deleting…' : 'Delete my account' }}
-      </button>
     </div>
   </div>
 </template>

@@ -172,6 +172,22 @@ function pickWeek(i: number) {
   seedSelected()
 }
 
+// --- Pagination: step one week at a time -----------------------------------
+const canPrev = computed(() => selectedIdx.value > 0)
+const canNext = computed(() => selectedIdx.value < weeks.value.length - 1 && isUnlocked(selectedIdx.value + 1))
+function prevWeek() {
+  if (canPrev.value) pickWeek(selectedIdx.value - 1)
+}
+function nextWeek() {
+  if (canNext.value) pickWeek(selectedIdx.value + 1)
+}
+// Whether a given day already has saved content (for the row status).
+const hasEntry = (date: string) => !!entriesByDate.value[date]
+
+// Overall progress: how many of the 24 weeks are fully filled in.
+const weeksDone = computed(() => weeks.value.filter((w) => weekComplete(w, entriesByDate.value)).length)
+const progressPct = computed(() => (weeks.value.length ? Math.round((weeksDone.value / weeks.value.length) * 100) : 0))
+
 function onFile(date: string, e: Event) {
   files[date] = (e.target as HTMLInputElement).files?.[0] ?? null
 }
@@ -235,6 +251,17 @@ onMounted(load)
     </div>
 
     <template v-else>
+      <!-- Overall progress across the 24-week placement -->
+      <div class="mb-4 rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+        <div class="mb-2 flex items-center justify-between text-sm">
+          <span class="font-semibold text-caleb-navy">Logbook progress</span>
+          <span class="text-gray-500">{{ weeksDone }} / {{ weeks.length }} weeks complete</span>
+        </div>
+        <div class="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+          <div class="h-full rounded-full bg-caleb-cyan transition-all" :style="{ width: progressPct + '%' }" />
+        </div>
+      </div>
+
       <!-- Week + monthly-summary selector, grouped one row per month -->
       <div class="mb-4 space-y-2">
         <div
@@ -275,49 +302,106 @@ onMounted(load)
       </div>
 
       <div v-if="selectedWeek" class="card overflow-hidden">
-        <header class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-caleb-navy bg-caleb-surface px-4 py-3">
-          <div>
-            <h2 class="font-semibold text-caleb-navy">Week {{ selectedWeek.week_number }}</h2>
-            <p class="text-xs text-gray-500">{{ fmt(selectedWeek.monday) }} – {{ fmt(selectedWeek.friday) }}</p>
+        <!-- Pager: step one logbook page (week) at a time -->
+        <header class="flex flex-col gap-3 border-b-2 border-caleb-navy bg-caleb-surface px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+          <div class="flex items-center justify-between gap-3 sm:justify-start sm:gap-4">
+            <button
+              class="btn-outline shrink-0 px-3 py-1.5 disabled:opacity-40"
+              :disabled="!canPrev"
+              aria-label="Previous week"
+              @click="prevWeek"
+            >
+              <AppIcon name="chevron-right" :size="16" class="rotate-180" />
+              <span class="hidden sm:inline">Prev</span>
+            </button>
+            <div class="text-center sm:text-left">
+              <h2 class="font-semibold text-caleb-navy">
+                Week {{ selectedWeek.week_number }}
+                <span class="text-xs font-normal text-gray-500">of {{ weeks.length }}</span>
+              </h2>
+              <p class="text-xs text-gray-500">{{ fmt(selectedWeek.monday) }} – {{ fmt(selectedWeek.friday) }}</p>
+            </div>
+            <button
+              class="btn-outline shrink-0 px-3 py-1.5 disabled:opacity-40"
+              :disabled="!canNext"
+              :title="canNext ? 'Next week' : 'Fill in all five days to unlock the next week'"
+              aria-label="Next week"
+              @click="nextWeek"
+            >
+              <span class="hidden sm:inline">Next</span>
+              <AppIcon name="chevron-right" :size="16" />
+            </button>
           </div>
-          <span v-if="signoffByWeek[selectedWeek.week_number]" class="pill inline-flex items-center gap-1 bg-green-100 text-green-800">
+          <span
+            v-if="signoffByWeek[selectedWeek.week_number]"
+            class="pill inline-flex items-center justify-center gap-1 self-center bg-green-100 text-green-800 sm:self-auto"
+          >
             <AppIcon name="check" :size="13" :stroke="2.5" /> Signed by {{ signoffByWeek[selectedWeek.week_number].signer_name }}
           </span>
         </header>
 
-        <!-- Days Mon–Fri -->
-        <div class="divide-y divide-gray-100">
-          <div v-for="day in selectedWeek.days" :key="day.date" class="p-4">
-            <div class="mb-2 flex items-center justify-between">
-              <p class="font-semibold text-caleb-navy">
-                {{ day.weekday }}
-                <span class="ml-1 text-xs font-normal text-gray-500">{{ fmt(day.date) }}</span>
-              </p>
-              <StatusPill v-if="entriesByDate[day.date]" :status="entriesByDate[day.date].status" />
-            </div>
+        <!-- Logbook page: Mon–Fri as a table (boxed grid on desktop, stacked on phones) -->
+        <table class="logbook-table">
+          <thead class="hidden sm:table-header-group">
+            <tr>
+              <th class="w-32">Day</th>
+              <th>Work done</th>
+              <th class="w-36">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="day in selectedWeek.days"
+              :key="day.date"
+              class="block border-b border-gray-200 sm:table-row sm:border-b-0"
+            >
+              <!-- Day / date -->
+              <td class="block border-0 bg-caleb-surface/50 sm:table-cell sm:bg-transparent">
+                <div class="flex items-center justify-between gap-2 sm:block">
+                  <p class="font-semibold text-caleb-navy">{{ day.weekday }}</p>
+                  <p class="text-xs text-gray-500">{{ fmt(day.date) }}</p>
+                  <StatusPill
+                    v-if="entriesByDate[day.date]"
+                    :status="entriesByDate[day.date].status"
+                    class="sm:hidden"
+                  />
+                </div>
+              </td>
 
-            <textarea
-              v-model="drafts[day.date]"
-              rows="3"
-              class="field logbook-lines"
-              placeholder="What did you do on this day?"
-            />
+              <!-- Work done: editable, with photo + save -->
+              <td class="block border-0 sm:table-cell">
+                <textarea
+                  v-model="drafts[day.date]"
+                  rows="3"
+                  class="field logbook-lines"
+                  placeholder="What did you do on this day?"
+                />
+                <div class="mt-2 flex flex-wrap items-center gap-3">
+                  <input type="file" accept="image/*" class="text-sm" @change="(e) => onFile(day.date, e)" />
+                  <button class="btn-primary" :disabled="savingDate === day.date" @click="saveDay(day)">
+                    {{ savingDate === day.date ? 'Saving…' : hasEntry(day.date) ? 'Update' : 'Save' }}
+                  </button>
+                </div>
+                <img
+                  v-if="entriesByDate[day.date]?.media_url"
+                  :src="entriesByDate[day.date].media_url"
+                  class="mt-2 max-h-40 rounded border"
+                  alt="attachment"
+                />
+                <!-- Supervisor comments / approvals -->
+                <div v-if="entriesByDate[day.date]" class="mt-3">
+                  <EntryFeedback :entry-id="entriesByDate[day.date].id" />
+                </div>
+              </td>
 
-            <div class="mt-2 flex flex-wrap items-center gap-3">
-              <input type="file" accept="image/*" class="text-sm" @change="(e) => onFile(day.date, e)" />
-              <button class="btn-primary" :disabled="savingDate === day.date" @click="saveDay(day)">
-                {{ savingDate === day.date ? 'Saving…' : entriesByDate[day.date] ? 'Update' : 'Save' }}
-              </button>
-            </div>
-
-            <img v-if="entriesByDate[day.date]?.media_url" :src="entriesByDate[day.date].media_url" class="mt-2 max-h-40 rounded border" alt="attachment" />
-
-            <!-- Supervisor comments / approvals -->
-            <div v-if="entriesByDate[day.date]" class="mt-3">
-              <EntryFeedback :entry-id="entriesByDate[day.date].id" />
-            </div>
-          </div>
-        </div>
+              <!-- Status (desktop column; on mobile it's shown in the day header) -->
+              <td class="hidden border-0 sm:table-cell">
+                <StatusPill v-if="entriesByDate[day.date]" :status="entriesByDate[day.date].status" />
+                <span v-else class="pill bg-gray-100 text-gray-500">Empty</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
         <!-- Week sign-off pane (read-only). Always shown so the student can see
              the status; the signature comes from the work supervisor's link. -->

@@ -84,7 +84,7 @@ onMounted(load)
     <div v-if="loading" class="p-12 text-center text-gray-400">Loading report…</div>
 
     <!-- The printable sheet -->
-    <div v-else class="report mx-auto my-6 max-w-[800px] bg-white p-10 shadow print:my-0 print:max-w-none print:shadow-none">
+    <div v-else class="report mx-auto my-4 max-w-[800px] bg-white p-5 shadow sm:my-6 sm:p-10 print:my-0 print:max-w-none print:p-10 print:shadow-none">
       <!-- Header -->
       <header class="flex items-center gap-4 border-b-4 border-caleb-navy pb-4">
         <img src="/caleb-logo.png" alt="Caleb University" class="h-16 w-auto" />
@@ -98,9 +98,9 @@ onMounted(load)
       </header>
 
       <!-- Student bio -->
-      <section class="mt-6 flex gap-6">
-        <img v-if="student?.avatar_url" :src="student.avatar_url" alt="passport" class="h-28 w-24 rounded border object-cover" />
-        <div v-else class="flex h-28 w-24 items-center justify-center rounded border text-xs text-gray-400">No photo</div>
+      <section class="mt-6 flex gap-4 sm:gap-6">
+        <img v-if="student?.avatar_url" :src="student.avatar_url" alt="passport" class="h-28 w-24 shrink-0 rounded border object-cover" />
+        <div v-else class="flex h-28 w-24 shrink-0 items-center justify-center rounded border text-xs text-gray-400">No photo</div>
         <dl class="grid flex-1 grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
           <div><dt class="text-xs uppercase text-gray-400">Name</dt><dd class="font-semibold">{{ student?.full_name || '—' }}</dd></div>
           <div><dt class="text-xs uppercase text-gray-400">Matric No</dt><dd>{{ student?.matric_no || '—' }}</dd></div>
